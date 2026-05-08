@@ -1,0 +1,15 @@
+import 'package:flutter/material.dart';
+import 'package:zakkiyah_app/Views/home/tile_items_screen.dart';
+import 'package:zakkiyah_app/constants/images/images.dart';
+
+class ScheduleScreen extends StatelessWidget {
+  const ScheduleScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const TileItemsScreen(
+      title: 'Schedule',
+      defaultAddImagePath: AppImages.schedule,
+    );
+  }
+}
