@@ -4,6 +4,7 @@ import 'package:zakkiyah_app/constants/images/images.dart';
 import 'package:zakkiyah_app/widgets/app_menu_drawer.dart';
 import 'package:zakkiyah_app/widgets/app_screen_header.dart';
 import 'package:zakkiyah_app/widgets/responsive_frame.dart';
+import 'package:zakkiyah_app/widgets/voice_tap.dart';
 
 class TileItemsScreen extends StatefulWidget {
   const TileItemsScreen({
@@ -29,6 +30,7 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
   final List<List<TileItemData>> _redoStack = <List<TileItemData>>[];
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  bool _isEditing = false;
   static const int _tilesPerPage = 8;
 
   @override
@@ -73,6 +75,7 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
                 child: Padding(
                   padding: EdgeInsets.all(10.w),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       _leftActionRail(),
                       SizedBox(width: 10.w),
@@ -115,55 +118,84 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
   Widget _itemCard(TileItemData item, int index) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isMediaScreen = widget.title.toLowerCase() == 'media';
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF202020) : const Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.circular(14.r),
-      ),
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            child: isMediaScreen
-                ? _buildMediaPreview(item.title)
-                : Center(
-                    child: Image.asset(
-                      item.imagePath ?? AppImages.shapes,
-                      width: 120.w,
-                      height: 120.h,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.image_outlined,
-                        color: isDark ? Colors.white54 : Colors.black45,
-                        size: 34.w,
+    final bool canModifyItem = _isEditing && item.isCustom;
+    return VoiceTap(
+      announceText: item.title,
+      onTap: () async {},
+      borderRadius: BorderRadius.circular(14.r),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF202020) : const Color(0xFFFAFAFA),
+          borderRadius: BorderRadius.circular(14.r),
+        ),
+        child: Column(
+          children: <Widget>[
+            if (canModifyItem)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+                child: Row(
+                  children: <Widget>[
+                    _circleAction(
+                      color: Colors.red,
+                      icon: Icons.delete,
+                      announceText: 'Delete ${item.title}',
+                      onTap: () => _deleteItem(index),
+                    ),
+                    const Spacer(),
+                    _circleAction(
+                      color: Colors.black,
+                      icon: Icons.edit,
+                      announceText: 'Edit ${item.title}',
+                      onTap: () => _editItem(index),
+                    ),
+                  ],
+                ),
+              )
+            else
+              SizedBox(height: 10.h),
+            Expanded(
+              child: isMediaScreen
+                  ? _buildMediaPreview(item.title)
+                  : Center(
+                      child: Image.asset(
+                        item.imagePath ?? AppImages.shapes,
+                        width: 120.w,
+                        height: 120.h,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => Icon(
+                          Icons.image_outlined,
+                          color: isDark ? Colors.white54 : Colors.black45,
+                          size: 34.w,
+                        ),
                       ),
                     ),
-                  ),
-          ),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 8.h),
-            decoration: BoxDecoration(
-              color: isMediaScreen
-                  ? _mediaLabelBackground(item.title)
-                  : (isDark ? const Color(0xFF3C3C3C) : const Color(0xFFF0F0F0)),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(14.r),
-                bottomRight: Radius.circular(14.r),
-              ),
             ),
-            child: Text(
-              item.title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 8.h),
+              decoration: BoxDecoration(
                 color: isMediaScreen
-                    ? const Color(0xFF2F3A4A)
-                    : (isDark ? Colors.white : Colors.black),
+                    ? _mediaLabelBackground(item.title)
+                    : (isDark ? const Color(0xFF3C3C3C) : const Color(0xFFF0F0F0)),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(14.r),
+                  bottomRight: Radius.circular(14.r),
+                ),
+              ),
+              child: Text(
+                item.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                  color: isMediaScreen
+                      ? const Color(0xFF2F3A4A)
+                      : (isDark ? Colors.white : Colors.black),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -405,9 +437,16 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
     }
   }
 
-  Widget _circleAction(Color color, IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
+  Widget _circleAction({
+    required Color color,
+    required IconData icon,
+    required String announceText,
+    required VoidCallback onTap,
+  }) {
+    return VoiceTap(
+      announceText: announceText,
+      onTap: () async => onTap(),
+      borderRadius: BorderRadius.circular(999.r),
       child: CircleAvatar(
         radius: 12.r,
         backgroundColor: color,
@@ -417,80 +456,99 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
   }
 
   Widget _leftActionRail() {
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      width: 92.w,
+      width: (isLandscape ? 78 : 92).w,
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFE3E3E3),
         borderRadius: BorderRadius.circular(14.r),
       ),
-      child: Column(
-        children: <Widget>[
-          SizedBox(height: 8.h),
-          _railIcon(
-            icon: Icons.arrow_back,
-            label: 'Back',
-            onTap: () => Navigator.pop(context),
-          ),
-          SizedBox(height: 8.h),
-          _railIcon(icon: Icons.add_box_outlined, label: 'Add', onTap: _addNew),
-          SizedBox(height: 20.h),
-          _railIcon(
-            icon: Icons.undo,
-            label: 'Undo',
-            onTap: _undoStack.isNotEmpty ? _undo : () {},
-          ),
-          SizedBox(height: 20.h),
-          _railIcon(
-            icon: Icons.redo,
-            label: 'Redo',
-            onTap: _redoStack.isNotEmpty ? _redo : () {},
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              GestureDetector(
-                onTap: _currentPage > 0
-                    ? () => _pageController.previousPage(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                        )
-                    : null,
-                child: Icon(
-                  Icons.chevron_left,
-                  size: 20.w,
-                  color: _currentPage > 0 ? Colors.black54 : Colors.black26,
+      child: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            SizedBox(height: 8.h),
+            _railIcon(
+              icon: Icons.arrow_back,
+              label: 'Back',
+              announceText: 'Back',
+              onTap: () => Navigator.pop(context),
+            ),
+            SizedBox(height: 8.h),
+            _railIcon(
+              icon: Icons.add_box_outlined,
+              label: 'Add',
+              announceText: 'Add item',
+              onTap: _isEditing ? _addNew : () {},
+            ),
+            SizedBox(height: 8.h),
+            _railIcon(
+              icon: _isEditing ? Icons.check_circle_outline : Icons.edit_note_outlined,
+              label: _isEditing ? 'Done' : 'Edit',
+              announceText: _isEditing ? 'Done editing' : 'Edit mode',
+              onTap: _toggleEditMode,
+            ),
+            SizedBox(height: 20.h),
+            _railIcon(
+              icon: Icons.undo,
+              label: 'Undo',
+              announceText: 'Undo',
+              onTap: _isEditing && _undoStack.isNotEmpty ? _undo : () {},
+            ),
+            SizedBox(height: 20.h),
+            _railIcon(
+              icon: Icons.redo,
+              label: 'Redo',
+              announceText: 'Redo',
+              onTap: _isEditing && _redoStack.isNotEmpty ? _redo : () {},
+            ),
+            SizedBox(height: 12.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                VoiceTap(
+                  announceText: 'Previous page',
+                  enabled: _currentPage > 0,
+                  onTap: () async => _pageController.previousPage(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                  ),
+                  child: Icon(
+                    Icons.chevron_left,
+                    size: (isLandscape ? 16 : 20).w,
+                    color: _currentPage > 0 ? Colors.black54 : Colors.black26,
+                  ),
                 ),
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                '${_currentPage + 1}/${_pageItems.length}',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: isDark ? Colors.white : Colors.black,
+                SizedBox(width: 6.w),
+                Text(
+                  '${_currentPage + 1}/${_pageItems.length}',
+                  style: TextStyle(
+                    fontSize: (isLandscape ? 12 : 14).sp,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
                 ),
-              ),
-              SizedBox(width: 6.w),
-              GestureDetector(
-                onTap: _currentPage < _pageItems.length - 1
-                    ? () => _pageController.nextPage(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                        )
-                    : null,
-                child: Icon(
-                  Icons.chevron_right,
-                  size: 20.w,
-                  color: _currentPage < _pageItems.length - 1
-                      ? Colors.black54
-                      : Colors.black26,
+                SizedBox(width: 6.w),
+                VoiceTap(
+                  announceText: 'Next page',
+                  enabled: _currentPage < _pageItems.length - 1,
+                  onTap: () async => _pageController.nextPage(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                  ),
+                  child: Icon(
+                    Icons.chevron_right,
+                    size: (isLandscape ? 16 : 20).w,
+                    color: _currentPage < _pageItems.length - 1
+                        ? Colors.black54
+                        : Colors.black26,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 8.h),
-        ],
+              ],
+            ),
+            SizedBox(height: 8.h),
+          ],
+        ),
       ),
     );
   }
@@ -498,27 +556,31 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
   Widget _railIcon({
     required IconData icon,
     required String label,
+    required String announceText,
     required VoidCallback onTap,
   }) {
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    return InkWell(
-      onTap: onTap,
+    return VoiceTap(
+      announceText: announceText,
+      onTap: () async => onTap(),
       borderRadius: BorderRadius.circular(8.r),
       child: Container(
-        width: 64.w,
-        padding: EdgeInsets.symmetric(vertical: 8.h),
+        width: (isLandscape ? 54 : 64).w,
+        padding: EdgeInsets.symmetric(vertical: (isLandscape ? 6 : 8).h),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF2F2F2),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Column(
           children: <Widget>[
-            Icon(icon, size: 22.w, color: isDark ? Colors.white70 : Colors.black54),
-            SizedBox(height: 3.h),
+            Icon(icon, size: (isLandscape ? 18 : 22).w, color: isDark ? Colors.white70 : Colors.black54),
+            SizedBox(height: 2.h),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10.sp,
+                fontSize: (isLandscape ? 9 : 10).sp,
                 color: isDark ? Colors.white : Colors.black,
               ),
             ),
@@ -550,23 +612,27 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
   }
 
   void _deleteItem(int index) {
+    if (!_isEditing || !_items[index].isCustom) return;
     _captureStateForUndo();
     setState(() => _items.removeAt(index));
   }
 
   void _addNew() {
+    if (!_isEditing) return;
     _captureStateForUndo();
     setState(() {
       _items.add(
         TileItemData(
           title: 'New Item',
           imagePath: widget.defaultAddImagePath,
+          isCustom: true,
         ),
       );
     });
   }
 
   Future<void> _editItem(int index) async {
+    if (!_isEditing || !_items[index].isCustom) return;
     final TextEditingController controller = TextEditingController(text: _items[index].title);
     final String? updated = await showDialog<String>(
       context: context,
@@ -588,28 +654,40 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
   }
 
   void _undo() {
+    if (!_isEditing) return;
     if (_undoStack.isEmpty) return;
     _redoStack.add(List<TileItemData>.from(_items));
     setState(() => _items = _undoStack.removeLast());
   }
 
   void _redo() {
+    if (!_isEditing) return;
     if (_redoStack.isEmpty) return;
     _undoStack.add(List<TileItemData>.from(_items));
     setState(() => _items = _redoStack.removeLast());
   }
+
+  void _toggleEditMode() {
+    setState(() => _isEditing = !_isEditing);
+  }
 }
 
 class TileItemData {
-  const TileItemData({required this.title, required this.imagePath});
+  const TileItemData({
+    required this.title,
+    required this.imagePath,
+    this.isCustom = false,
+  });
 
   final String title;
   final String? imagePath;
+  final bool isCustom;
 
-  TileItemData copyWith({String? title, String? imagePath}) {
+  TileItemData copyWith({String? title, String? imagePath, bool? isCustom}) {
     return TileItemData(
       title: title ?? this.title,
       imagePath: imagePath ?? this.imagePath,
+      isCustom: isCustom ?? this.isCustom,
     );
   }
 }

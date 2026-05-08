@@ -55,6 +55,7 @@ class _MediaScreenState extends State<MediaScreen> {
                   color: colorScheme.surface,
                   padding: EdgeInsets.all(10.w),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       _leftMenu(),
                       SizedBox(width: 12.w),
@@ -103,47 +104,54 @@ class _MediaScreenState extends State<MediaScreen> {
   Widget _leftMenu() {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Container(
-      width: 145.w,
+      width: (isLandscape ? 124 : 145).w,
       decoration: BoxDecoration(
         color: isDark ? colorScheme.surfaceContainerHighest : colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(4.r),
       ),
-      child: Column(
-        children: <Widget>[
-          _menuButton(
-            label: 'Go Back',
-            icon: Icons.reply_rounded,
-            selected: false,
-            onTap: () => Navigator.pop(context),
-          ),
-          for (int i = 0; i < _menuItems.length; i++)
+      child: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
             _menuButton(
-              label: _menuItems[i].label,
-              icon: _menuItems[i].icon,
-              selected: i == _selectedIndex,
-              onTap: () => setState(() => _selectedIndex = i),
+              label: 'Go Back',
+              icon: Icons.reply_rounded,
+              selected: false,
+              onTap: () => Navigator.pop(context),
             ),
-          const Spacer(),
-          Container(
-            margin: EdgeInsets.only(bottom: 10.h),
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(24.r),
+            for (int i = 0; i < _menuItems.length; i++)
+              _menuButton(
+                label: _menuItems[i].label,
+                icon: _menuItems[i].icon,
+                selected: i == _selectedIndex,
+                onTap: () => setState(() => _selectedIndex = i),
+              ),
+            SizedBox(height: 8.h),
+            Container(
+              margin: EdgeInsets.only(bottom: 10.h),
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(24.r),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  _pagerButton(Icons.arrow_back, false),
+                  SizedBox(width: 8.w),
+                  Text(
+                    '1 / 1',
+                    style: TextStyle(fontSize: (isLandscape ? 9 : 11).sp),
+                  ),
+                  SizedBox(width: 8.w),
+                  _pagerButton(Icons.arrow_forward, true),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                _pagerButton(Icons.arrow_back, false),
-                SizedBox(width: 8.w),
-                Text('1 / 1', style: TextStyle(fontSize: 11.sp)),
-                SizedBox(width: 8.w),
-                _pagerButton(Icons.arrow_forward, true),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -157,13 +165,18 @@ class _MediaScreenState extends State<MediaScreen> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     final bool useDarkSelectedStyle = isDark && selected;
     final bool useLightSelectedStyle = !isDark && selected;
     return InkWell(
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: (isLandscape ? 8 : 10).w,
+          vertical: (isLandscape ? 5 : 8).h,
+        ),
         decoration: BoxDecoration(
           color: useDarkSelectedStyle
               ? Colors.white
@@ -178,14 +191,14 @@ class _MediaScreenState extends State<MediaScreen> {
           children: <Widget>[
             Icon(
               icon,
-              size: 22.w,
+              size: (isLandscape ? 16 : 22).w,
               color: selected ? Colors.black : colorScheme.onSurface,
             ),
-            SizedBox(width: 8.w),
+            SizedBox(width: (isLandscape ? 4 : 8).w),
             Text(
               label,
               style: textTheme.bodyMedium?.copyWith(
-                fontSize: 16.sp,
+                fontSize: (isLandscape ? 12 : 16).sp,
                 color: selected ? Colors.black : colorScheme.onSurface,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               ),
@@ -199,7 +212,7 @@ class _MediaScreenState extends State<MediaScreen> {
   Widget _pagerButton(IconData icon, bool dark) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return CircleAvatar(
-      radius: 16.r,
+      radius: 18.r,
       backgroundColor: dark ? colorScheme.onSurface : colorScheme.surface,
       child: Icon(
         icon,

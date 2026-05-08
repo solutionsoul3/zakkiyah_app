@@ -18,6 +18,15 @@ class AppRoutes {
   static const String settingsDisplay = '/settings-display';
   static const String settingsProfile = '/settings-profile';
   static const String settingsUsageControl = '/settings-usage-control';
+  static const String settingsApps = '/settings-apps';
+  static const String settingsLayout = '/settings-layout';
+  static const String settingsCardBehavior = '/settings-card-behavior';
+  static const String settingsSound = '/settings-sound';
+  static const String settingsLanguageVoice = '/settings-language-voice';
+  static const String settingsAccessories = '/settings-accessories';
+  static const String settingsDevice = '/settings-device';
+  static const String settingsAccountPrivacy = '/settings-account-privacy';
+  static const String settingsHelp = '/settings-help';
   static const String editor = '/editor';
 
   static final List<GetPage> pages = [
@@ -33,6 +42,15 @@ class AppRoutes {
       name: settingsUsageControl,
       page: () => const UsageControlSettingsScreen(),
     ),
+    GetPage(name: settingsApps, page: () => const AppsSettingsScreen()),
+    GetPage(name: settingsLayout, page: () => const LayoutSettingsScreen()),
+    GetPage(name: settingsCardBehavior, page: () => const CardBehaviorSettingsScreen()),
+    GetPage(name: settingsSound, page: () => const SoundSettingsScreen()),
+    GetPage(name: settingsLanguageVoice, page: () => const LanguageVoiceSettingsScreen()),
+    GetPage(name: settingsAccessories, page: () => const AccessoriesSettingsScreen()),
+    GetPage(name: settingsDevice, page: () => const DeviceSettingsScreen()),
+    GetPage(name: settingsAccountPrivacy, page: () => const AccountPrivacySettingsScreen()),
+    GetPage(name: settingsHelp, page: () => const HelpSettingsScreen()),
     GetPage(name: editor, page: () => const EditorScreen()),
   ];
 }

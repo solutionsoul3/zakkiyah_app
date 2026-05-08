@@ -28,16 +28,19 @@ class TherapyScreen extends StatelessWidget {
                 AppScreenHeader(
                   topBarHeight: 56,
                   topBarPadding: EdgeInsets.symmetric(horizontal: 8.w),
-                  titleContent: Row(
-                    children: <Widget>[
-                      Icon(Icons.home, size: 18.w),
-                      SizedBox(width: 6.w),
-                      Text('Home', style: TextStyle(fontSize: 20.sp)),
-                      SizedBox(width: 12.w),
-                      Icon(Icons.spa_outlined, size: 18.w),
-                      SizedBox(width: 6.w),
-                      Text('Therapy', style: TextStyle(fontSize: 20.sp)),
-                    ],
+                  titleContent: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.home, size: 18.w),
+                        SizedBox(width: 6.w),
+                        Text('Home', style: TextStyle(fontSize: 20.sp)),
+                        SizedBox(width: 12.w),
+                        Icon(Icons.spa_outlined, size: 18.w),
+                        SizedBox(width: 6.w),
+                        Text('Therapy', style: TextStyle(fontSize: 20.sp)),
+                      ],
+                    ),
                   ),
                 ),
                 Expanded(

@@ -7,8 +7,15 @@ import 'package:zakkiyah_app/widgets/app_menu_drawer.dart';
 import 'package:zakkiyah_app/widgets/app_screen_header.dart';
 import 'package:zakkiyah_app/widgets/responsive_frame.dart';
 
-class TalkScreen extends StatelessWidget {
+class TalkScreen extends StatefulWidget {
   const TalkScreen({super.key});
+
+  @override
+  State<TalkScreen> createState() => _TalkScreenState();
+}
+
+class _TalkScreenState extends State<TalkScreen> {
+  bool _isEditing = false;
 
   static const List<_ImportantCategoryData> _categories = <_ImportantCategoryData>[
     _ImportantCategoryData(
@@ -114,6 +121,7 @@ class TalkScreen extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.all(10.w),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       _leftRail(context),
                       SizedBox(width: 10.w),
@@ -156,45 +164,64 @@ class TalkScreen extends StatelessWidget {
         color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFE3E3E3),
         borderRadius: BorderRadius.circular(14.r),
       ),
-      child: Column(
-        children: <Widget>[
-          SizedBox(height: 8.h),
-          _railIcon(
-            context: context,
-            icon: Icons.arrow_back,
-            label: 'Back',
-            onTap: () => Navigator.pop(context),
-          ),
-          SizedBox(height: 8.h),
-          _railIcon(
-            context: context,
-            icon: Icons.search,
-            label: 'Search',
-            onTap: () {},
-          ),
-          SizedBox(height: 8.h),
-          _railIcon(
-            context: context,
-            icon: Icons.menu_book,
-            label: 'Tutorial',
-            onTap: () {},
-          ),
-          const Spacer(),
-          _railIcon(
-            context: context,
-            icon: Icons.arrow_back_ios,
-            label: 'Prev',
-            onTap: () {},
-          ),
-          SizedBox(height: 8.h),
-          _railIcon(
-            context: context,
-            icon: Icons.arrow_forward_ios,
-            label: 'Next',
-            onTap: () {},
-          ),
-          SizedBox(height: 8.h),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            SizedBox(height: 8.h),
+            _railIcon(
+              context: context,
+              icon: Icons.arrow_back,
+              label: 'Back',
+              onTap: () => Navigator.pop(context),
+            ),
+            SizedBox(height: 8.h),
+            _railIcon(
+              context: context,
+              icon: Icons.add_box_outlined,
+              label: 'Add',
+              onTap: () {},
+            ),
+            SizedBox(height: 8.h),
+            _railIcon(
+              context: context,
+              icon: _isEditing ? Icons.check_circle_outline : Icons.edit_note_outlined,
+              label: _isEditing ? 'Done' : 'Edit',
+              onTap: () => setState(() => _isEditing = !_isEditing),
+            ),
+            SizedBox(height: 20.h),
+            _railIcon(
+              context: context,
+              icon: Icons.undo,
+              label: 'Undo',
+              onTap: () {},
+            ),
+            SizedBox(height: 20.h),
+            _railIcon(
+              context: context,
+              icon: Icons.redo,
+              label: 'Redo',
+              onTap: () {},
+            ),
+            SizedBox(height: 12.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Icon(Icons.chevron_left, size: 20.w, color: Colors.black54),
+                SizedBox(width: 6.w),
+                Text(
+                  '1/1',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                SizedBox(width: 6.w),
+                Icon(Icons.chevron_right, size: 20.w, color: Colors.black54),
+              ],
+            ),
+            SizedBox(height: 8.h),
+          ],
+        ),
       ),
     );
   }

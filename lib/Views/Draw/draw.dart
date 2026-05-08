@@ -40,6 +40,8 @@ class _DrawScreenState extends State<DrawScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       endDrawer: const AppMenuDrawer(),
@@ -52,9 +54,9 @@ class _DrawScreenState extends State<DrawScreen> {
               Expanded(
                 child: Column(
                   children: <Widget>[
-                    _actionRow(),
+                    _actionRow(isLandscape: isLandscape),
                     Expanded(child: _drawingCanvas()),
-                    _bottomTools(),
+                    _bottomTools(isLandscape: isLandscape),
                   ],
                 ),
               ),
@@ -92,9 +94,9 @@ class _DrawScreenState extends State<DrawScreen> {
     );
   }
 
-  Widget _bottomTools() {
+  Widget _bottomTools({required bool isLandscape}) {
     return Container(
-      height: 112.h,
+      height: (isLandscape ? 82 : 112).h,
       color: const Color(0xFFD9D9D9),
       child: Row(
         children: <Widget>[
@@ -112,36 +114,42 @@ class _DrawScreenState extends State<DrawScreen> {
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 8.w),
-            child: Row(
-              children: <Widget>[
-                _toolCircle(
-                  icon: Icons.pan_tool_alt_outlined,
-                  selected: !_eraserMode,
-                  onTap: () => setState(() => _eraserMode = false),
-                ),
-                SizedBox(width: 8.w),
-                _toolCircle(
-                  icon: Icons.edit,
-                  selected: !_eraserMode,
-                  onTap: () => setState(() {
-                    _eraserMode = false;
-                    _strokeWidth = 5;
-                  }),
-                ),
-                SizedBox(width: 8.w),
-                _toolCircle(
-                  icon: Icons.auto_fix_normal,
-                  selected: _eraserMode,
-                  onTap: () => setState(() {
-                    _eraserMode = true;
-                    _strokeWidth = 18;
-                  }),
-                ),
-                SizedBox(width: 8.w),
-                _toolCircle(icon: Icons.undo, onTap: _undoStroke),
-                SizedBox(width: 8.w),
-                _toolCircle(icon: Icons.clear, onTap: _clearAll),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: <Widget>[
+                  _toolCircle(
+                    icon: Icons.pan_tool_alt_outlined,
+                    selected: !_eraserMode,
+                    onTap: () => setState(() => _eraserMode = false),
+                    isLandscape: isLandscape,
+                  ),
+                  SizedBox(width: 8.w),
+                  _toolCircle(
+                    icon: Icons.edit,
+                    selected: !_eraserMode,
+                    onTap: () => setState(() {
+                      _eraserMode = false;
+                      _strokeWidth = 5;
+                    }),
+                    isLandscape: isLandscape,
+                  ),
+                  SizedBox(width: 8.w),
+                  _toolCircle(
+                    icon: Icons.auto_fix_normal,
+                    selected: _eraserMode,
+                    onTap: () => setState(() {
+                      _eraserMode = true;
+                      _strokeWidth = 18;
+                    }),
+                    isLandscape: isLandscape,
+                  ),
+                  SizedBox(width: 8.w),
+                  _toolCircle(icon: Icons.undo, onTap: _undoStroke, isLandscape: isLandscape),
+                  SizedBox(width: 8.w),
+                  _toolCircle(icon: Icons.clear, onTap: _clearAll, isLandscape: isLandscape),
+                ],
+              ),
             ),
           ),
         ],
@@ -176,12 +184,13 @@ class _DrawScreenState extends State<DrawScreen> {
     required IconData icon,
     required VoidCallback onTap,
     bool selected = false,
+    required bool isLandscape,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 42.w,
-        height: 42.w,
+        width: (isLandscape ? 32 : 42).w,
+        height: (isLandscape ? 32 : 42).w,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: Colors.white,
@@ -190,51 +199,79 @@ class _DrawScreenState extends State<DrawScreen> {
             width: 2,
           ),
         ),
-        child: Icon(icon, color: Colors.black87, size: 25.w),
+        child: Icon(icon, color: Colors.black87, size: (isLandscape ? 17 : 25).w),
       ),
     );
   }
 
-  Widget _actionRow() {
+  Widget _actionRow({required bool isLandscape}) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      height: 94.h,
+      height: (isLandscape ? 118 : 94).h,
       padding: EdgeInsets.symmetric(horizontal: 10.w),
       color: isDark ? const Color(0xFF1B1B1B) : const Color(0xFFD3D3D3),
-      child: Column(
-        children: <Widget>[
-          SizedBox(
-            height: 46.h,
-            child: Row(
-              children: <Widget>[
-                _actionChip(icon: Icons.add, text: 'Add Image', onTap: _addImage),
-                SizedBox(width: 8.w),
-                _actionChip(icon: Icons.edit_outlined, text: 'Edit Image', onTap: _editImage),
-                SizedBox(width: 8.w),
-                _actionChip(icon: Icons.delete_outline, text: 'Remove Image', onTap: _removeImage),
-              ],
-            ),
-          ),
-          SizedBox(height: 6.h),
-          Row(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final bool compact = constraints.maxHeight < 96.h;
+          final double firstRowHeight = compact ? 40.h : (isLandscape ? 54.h : 46.h);
+          final double gap = compact ? 4.h : (isLandscape ? 8.h : 6.h);
+
+          return Column(
             children: <Widget>[
-              const Spacer(),
-          _textAction(
-            icon: Icons.close,
-            text: 'Close',
-            color: const Color(0xFFFF3360),
-            onTap: _cancelChanges,
-          ),
-          SizedBox(width: 8.w),
-          _textAction(
-            icon: Icons.check,
-            text: 'Save',
-            color: const Color(0xFF66C8F6),
-            onTap: _saveChanges,
-          ),
+              SizedBox(
+                height: firstRowHeight,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: <Widget>[
+                    _actionChip(
+                      icon: Icons.add,
+                      text: 'Add Image',
+                      onTap: _addImage,
+                      isLandscape: isLandscape || compact,
+                    ),
+                    SizedBox(width: 8.w),
+                    _actionChip(
+                      icon: Icons.edit_outlined,
+                      text: 'Edit Image',
+                      onTap: _editImage,
+                      isLandscape: isLandscape || compact,
+                    ),
+                    SizedBox(width: 8.w),
+                    _actionChip(
+                      icon: Icons.delete_outline,
+                      text: 'Remove Image',
+                      onTap: _removeImage,
+                      isLandscape: isLandscape || compact,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: gap),
+              Flexible(
+                child: Row(
+                  children: <Widget>[
+                    const Spacer(),
+                    _textAction(
+                      icon: Icons.close,
+                      text: 'Close',
+                      color: const Color(0xFFFF3360),
+                      onTap: _cancelChanges,
+                      isLandscape: isLandscape || compact,
+                    ),
+                    SizedBox(width: 8.w),
+                    _textAction(
+                      icon: Icons.check,
+                      text: 'Save',
+                      color: const Color(0xFF66C8F6),
+                      onTap: _saveChanges,
+                      isLandscape: isLandscape || compact,
+                    ),
+                  ],
+                ),
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -243,27 +280,41 @@ class _DrawScreenState extends State<DrawScreen> {
     required IconData icon,
     required String text,
     required VoidCallback onTap,
+    required bool isLandscape,
   }) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8.r),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        constraints: BoxConstraints(
+          minWidth: (isLandscape ? 108 : 120).w,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: (isLandscape ? 12 : 12).w,
+          vertical: (isLandscape ? 9 : 8).h,
+        ),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFEDEDED),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Row(
           children: <Widget>[
-            Icon(icon, size: 18.w, color: isDark ? Colors.white : Colors.black54),
-            SizedBox(width: 6.w),
+            Icon(
+              icon,
+              size: (isLandscape ? 18 : 18).w,
+              color: isDark ? Colors.white : Colors.black54,
+            ),
+            SizedBox(width: (isLandscape ? 6 : 6).w),
             Text(
               text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 15.sp,
+                fontSize: (isLandscape ? 13 : 15).sp,
                 color: isDark ? Colors.white : Colors.black,
               ),
+              softWrap: false,
             ),
           ],
         ),
@@ -276,22 +327,35 @@ class _DrawScreenState extends State<DrawScreen> {
     required String text,
     required Color color,
     required VoidCallback onTap,
+    required bool isLandscape,
   }) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8.r),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        constraints: BoxConstraints(
+          minWidth: (isLandscape ? 92 : 100).w,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: (isLandscape ? 12 : 12).w,
+          vertical: (isLandscape ? 9 : 8).h,
+        ),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Row(
           children: <Widget>[
-            Icon(icon, color: color, size: 20.w),
-            SizedBox(width: 4.w),
-            Text(text, style: TextStyle(fontSize: 16.sp, color: color)),
+            Icon(icon, color: color, size: (isLandscape ? 18 : 20).w),
+            SizedBox(width: (isLandscape ? 6 : 4).w),
+            Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: (isLandscape ? 13 : 16).sp, color: color),
+              softWrap: false,
+            ),
           ],
         ),
       ),

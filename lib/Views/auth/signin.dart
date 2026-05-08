@@ -104,13 +104,13 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     onPressed: _acceptedTerms
                         ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (_) => const VerificationScreen(),
-                        ),
-                      );
-                    }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => const VerificationScreen(),
+                              ),
+                            );
+                          }
                         : null,
                     child: const Text(
                       'Continue',

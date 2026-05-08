@@ -25,10 +25,14 @@ import 'package:zakkiyah_app/Views/SimpleCommunication/simple_communication.dart
 import 'package:zakkiyah_app/Views/Talk/talk.dart';
 import 'package:zakkiyah_app/Views/Therapy/therapy.dart';
 import 'package:zakkiyah_app/Views/Type/type.dart';
+import 'package:zakkiyah_app/Views/settings/settings_screen.dart';
 import 'package:zakkiyah_app/constants/Colors/colors.dart';
 import 'package:zakkiyah_app/constants/images/images.dart';
+import 'package:zakkiyah_app/controllers/home_apps_controller.dart';
+import 'package:zakkiyah_app/services/voice_service.dart';
 import 'package:zakkiyah_app/widgets/app_screen_header.dart';
 import 'package:zakkiyah_app/widgets/responsive_frame.dart';
+import 'package:zakkiyah_app/widgets/voice_tap.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,11 +44,32 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final PageController _pageController = PageController();
+  final HomeAppsController _homeAppsController = Get.find<HomeAppsController>();
   int _currentPage = 0;
-  final Set<String> _unlockedTiles = <String>{};
+  int _getCrossAxisCount(BuildContext context) {
+    final MediaQueryData media = MediaQuery.of(context);
+    final double width = media.size.width;
+    final bool isLandscape = media.orientation == Orientation.landscape;
 
-  final List<List<_HomeTileData>> _pages = <List<_HomeTileData>>[
-    <_HomeTileData>[
+    if (width >= 1300) return 7;
+    if (width >= 1100) return isLandscape ? 6 : 5;
+    if (width >= 900) return isLandscape ? 5 : 4;
+    if (width >= 700) return 4;
+    return 2; // mobile
+  }
+
+  double _getChildAspectRatio(BuildContext context) {
+    final MediaQueryData media = MediaQuery.of(context);
+    final double width = media.size.width;
+    final bool isLandscape = media.orientation == Orientation.landscape;
+
+    if (width >= 1300) return isLandscape ? 1.25 : 1.12;
+    if (width >= 1100) return isLandscape ? 1.2 : 1.08;
+    if (width >= 900) return isLandscape ? 1.12 : 1.0;
+    if (width >= 700) return 0.95;
+    return 1.15;
+  }
+  final List<_HomeTileData> _allTiles = <_HomeTileData>[
       _HomeTileData('Talk', AppImages.talk, AppColors.homeTile1),
       _HomeTileData('Schedule', AppImages.schedule, AppColors.homeTile2),
       _HomeTileData('Type', AppImages.type, AppColors.homeTile3),
@@ -53,8 +78,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _HomeTileData('Draw', AppImages.draw, AppColors.homeTile6),
       _HomeTileData('Learn', AppImages.learn, AppColors.homeTile7),
       _HomeTileData('Read', AppImages.read, AppColors.homeTile8),
-    ],
-    <_HomeTileData>[
       _HomeTileData('Shapes', AppImages.shapes, AppColors.homeTile1),
       _HomeTileData('Daily Routine', AppImages.dailyRoutine, AppColors.homeTile2),
       _HomeTileData('Alphabet', AppImages.alphabet, AppColors.homeTile3),
@@ -63,8 +86,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _HomeTileData('Sign Language', AppImages.signLanguage, AppColors.homeTile6),
       _HomeTileData('Feelings', AppImages.feelings, AppColors.homeTile7),
       _HomeTileData('Important', AppImages.important, AppColors.homeTile8),
-    ],
-    <_HomeTileData>[
       _HomeTileData(
         'Conversational Phrases',
         AppImages.conversationalPhrases,
@@ -81,8 +102,24 @@ class _HomeScreenState extends State<HomeScreen> {
       _HomeTileData('Mental Health', AppImages.mentalHealth, AppColors.homeTile6),
       _HomeTileData('Pain Scale', AppImages.planSchedule, AppColors.homeTile7),
       _HomeTileData('Important', AppImages.importantt, AppColors.homeTile8),
-    ],
   ];
+
+  List<List<_HomeTileData>> get _pages {
+    final Set<String> enabled = _homeAppsController.enabledLabels;
+    final List<_HomeTileData> visible = _allTiles
+        .where((tile) => enabled.contains(tile.label))
+        .toList();
+    if (visible.isEmpty) return <List<_HomeTileData>>[<_HomeTileData>[]];
+
+    const int pageSize = 8;
+    final List<List<_HomeTileData>> pages = <List<_HomeTileData>>[];
+    for (int i = 0; i < visible.length; i += pageSize) {
+      pages.add(
+        visible.sublist(i, i + pageSize > visible.length ? visible.length : i + pageSize),
+      );
+    }
+    return pages;
+  }
 
   void _goToPage(int page) {
     _pageController.animateToPage(
@@ -118,48 +155,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(10.w),
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: _pages.length,
-                    onPageChanged: (int index) => setState(() => _currentPage = index),
-                    itemBuilder: (_, int pageIndex) {
-                      final List<_HomeTileData> pageItems = _pages[pageIndex];
-                      return GridView.builder(
-                        itemCount: pageItems.length,
-                        physics: const BouncingScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 15.h,
-                          crossAxisSpacing: 15.w,
-                          childAspectRatio: 1.15,
-                        ),
-                        itemBuilder: (_, int index) {
-                          final _HomeTileData tile = pageItems[index];
-                          final bool isUnlocked = _unlockedTiles.contains(tile.label);
-                          return _HomeTile(
-                            data: tile,
-                            isUnlocked: isUnlocked,
-                            onLockToggle: () {
-                              setState(() {
-                                if (isUnlocked) {
-                                  _unlockedTiles.remove(tile.label);
-                                } else {
-                                  _unlockedTiles.add(tile.label);
-                                }
-                              });
-                            },
-                            onTap: () {
-                              if (!isUnlocked) return;
-                              _openTileScreen(tile.label.toLowerCase());
-                            },
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
+                child: Obx(() {
+                  final List<List<_HomeTileData>> pages = _pages;
+                  if (_currentPage >= pages.length) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
+                      setState(() => _currentPage = pages.length - 1);
+                      _pageController.jumpToPage(pages.length - 1);
+                    });
+                  }
+
+                  return Padding(
+                    padding: EdgeInsets.all(10.w),
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: pages.length,
+                      onPageChanged: (int index) => setState(() => _currentPage = index),
+                      itemBuilder: (_, int pageIndex) {
+                        final List<_HomeTileData> pageItems = pages[pageIndex];
+                        return GridView.builder(
+                          itemCount: pageItems.length,
+                          physics: const BouncingScrollPhysics(),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: _getCrossAxisCount(context),
+                            mainAxisSpacing: 15.h,
+                            crossAxisSpacing: 15.w,
+                            childAspectRatio: _getChildAspectRatio(context),
+                          ),
+                          itemBuilder: (_, int index) {
+                            final _HomeTileData tile = pageItems[index];
+                            return _HomeTile(
+                              data: tile,
+                              announceText: tile.label,
+                              onTap: () async {
+                                _openTileScreen(tile.label.toLowerCase());
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  );
+                }),
               ),
               Padding(
                 padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 8.h),
@@ -167,6 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: <Widget>[
                     _ArrowButton(
                       icon: Icons.arrow_back_ios_new,
+                      announceText: 'Previous page',
                       enabled: _currentPage > 0,
                       onTap: () => _goToPage(_currentPage - 1),
                     ),
@@ -188,6 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Spacer(),
                     _ArrowButton(
                       icon: Icons.arrow_forward_ios,
+                      announceText: 'Next page',
                       enabled: _currentPage < _pages.length - 1,
                       onTap: () => _goToPage(_currentPage + 1),
                       dark: true,
@@ -256,79 +295,63 @@ class _HomeScreenState extends State<HomeScreen> {
 class _HomeTile extends StatelessWidget {
   const _HomeTile({
     required this.data,
-    required this.isUnlocked,
-    required this.onLockToggle,
+    required this.announceText,
     this.onTap,
   });
   final _HomeTileData data;
-  final bool isUnlocked;
-  final VoidCallback onLockToggle;
-  final VoidCallback? onTap;
+  final String announceText;
+  final Future<void> Function()? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final double width = MediaQuery.of(context).size.width;
+    final bool isTablet = width >= 700;
     final Color lightTileBackground = Color.lerp(data.labelColor, Colors.white, 0.82)!;
-    return InkWell(
-      onTap: onTap,
+    return VoiceTap(
+      announceText: announceText,
+      onTap: onTap ?? () async {},
+      enabled: onTap != null,
       borderRadius: BorderRadius.circular(8.r),
       child: Container(
         decoration: BoxDecoration(
           color: lightTileBackground,
           borderRadius: BorderRadius.circular(8.r),
         ),
-        child: Stack(
+        child: Column(
           children: <Widget>[
-            Column(
-              children: <Widget>[
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.all(8.w),
-                    child: Image.asset(
-                      data.imagePath,
-                      width: 85.w,
-                      height: 85.h,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) =>
-                          Icon(Icons.image_outlined, size: 24.w, color: Colors.blueGrey),
-                    ),
-                  ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(8.w),
+                child: Image.asset(
+                  data.imagePath,
+                  width: (isTablet ? 72 : (isLandscape ? 68 : 85)).w,
+                  height: (isTablet ? 72 : (isLandscape ? 68 : 85)).h,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) =>
+                      Icon(Icons.image_outlined, size: 24.w, color: Colors.blueGrey),
                 ),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 4.w),
-                  decoration: BoxDecoration(
-                    color: data.labelColor,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(8.r),
-                      bottomRight: Radius.circular(8.r),
-                    ),
-                  ),
-                  child: Text(
-                    data.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.black87, fontSize: 18.sp),
-                  ),
-                ),
-              ],
+              ),
             ),
-            Positioned(
-              top: 6.h,
-              right: 6.w,
-              child: GestureDetector(
-                onTap: onLockToggle,
-                child: Container(
-                  padding: EdgeInsets.all(4.w),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isUnlocked ? Icons.lock_open_rounded : Icons.lock_rounded,
-                    size: 18.w,
-                    color: Colors.black87,
-                  ),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 4.w),
+              decoration: BoxDecoration(
+                color: data.labelColor,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(8.r),
+                  bottomRight: Radius.circular(8.r),
+                ),
+              ),
+              child: Text(
+                data.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: (isTablet ? 14 : (isLandscape ? 14 : 18)).sp,
                 ),
               ),
             ),
@@ -342,29 +365,35 @@ class _HomeTile extends StatelessWidget {
 class _ArrowButton extends StatelessWidget {
   const _ArrowButton({
     required this.icon,
+    required this.announceText,
     required this.enabled,
     required this.onTap,
     this.dark = false,
   });
   final IconData icon;
+  final String announceText;
   final bool enabled;
   final VoidCallback onTap;
   final bool dark;
 
   @override
   Widget build(BuildContext context) {
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     final Color background = dark ? Colors.black : Colors.grey;
     final Color iconColor = dark ? Colors.white : Colors.black;
-    return InkWell(
-      onTap: enabled ? onTap : null,
+    return VoiceTap(
+      announceText: announceText,
+      onTap: () async => onTap(),
+      enabled: enabled,
       borderRadius: BorderRadius.circular(20.r),
       child: Opacity(
         opacity: enabled ? 1 : 0.35,
         child: Container(
-          width: 42.w,
-          height: 42.w,
+          width: (isLandscape ? 34 : 42).w,
+          height: (isLandscape ? 34 : 42).w,
           decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-          child: Icon(icon, size: 14.w, color: iconColor),
+          child: Icon(icon, size: (isLandscape ? 12 : 14).w, color: iconColor),
         ),
       ),
     );
@@ -383,13 +412,15 @@ class _HomeMenuDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       child: SafeArea(
-        child: Column(
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
+            const SizedBox(
+              height: 76,
               child: Center(
                 child: Text(
                   'Settings Menu',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -413,9 +444,63 @@ class _HomeMenuDrawer extends StatelessWidget {
             ),
             _item(
               context,
+              icon: Icons.apps_outlined,
+              title: 'Manage Apps',
+              route: AppRoutes.settingsApps,
+            ),
+            _item(
+              context,
               icon: Icons.edit_note_outlined,
               title: 'Editor',
               route: AppRoutes.editor,
+            ),
+            _settingsItem(
+              context,
+              icon: Icons.grid_view_outlined,
+              title: 'Layout',
+              tab: SettingsTab.layout,
+            ),
+            _settingsItem(
+              context,
+              icon: Icons.view_carousel_outlined,
+              title: 'Card Behavior',
+              tab: SettingsTab.cardBehavior,
+            ),
+            _settingsItem(
+              context,
+              icon: Icons.volume_up_outlined,
+              title: 'Sound',
+              tab: SettingsTab.sound,
+            ),
+            _settingsItem(
+              context,
+              icon: Icons.record_voice_over_outlined,
+              title: 'Language And Voice',
+              tab: SettingsTab.languageVoice,
+            ),
+            _settingsItem(
+              context,
+              icon: Icons.settings_input_component_outlined,
+              title: 'Accessories',
+              tab: SettingsTab.accessories,
+            ),
+            _settingsItem(
+              context,
+              icon: Icons.devices_other_outlined,
+              title: 'Device',
+              tab: SettingsTab.device,
+            ),
+            _settingsItem(
+              context,
+              icon: Icons.privacy_tip_outlined,
+              title: 'Account and Privacy',
+              tab: SettingsTab.accountPrivacy,
+            ),
+            _settingsItem(
+              context,
+              icon: Icons.help_outline,
+              title: 'Help',
+              tab: SettingsTab.help,
             ),
           ],
         ),
@@ -432,9 +517,31 @@ class _HomeMenuDrawer extends StatelessWidget {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
-      onTap: () {
-        Navigator.pop(context);
+      onTap: () async {
+        final NavigatorState navigator = Navigator.of(context);
+        await VoiceService.instance.speak(title);
+        if (!navigator.mounted) return;
+        navigator.pop();
         Get.toNamed(route);
+      },
+    );
+  }
+
+  Widget _settingsItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required SettingsTab tab,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      onTap: () async {
+        final NavigatorState navigator = Navigator.of(context);
+        await VoiceService.instance.speak(title);
+        if (!navigator.mounted) return;
+        navigator.pop();
+        Get.to(() => SettingsScreen(initialTab: tab, drawerSectionMode: true));
       },
     );
   }

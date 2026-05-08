@@ -23,88 +23,95 @@ class OnboardingTemplate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     final Color themeTextColor = isDark ? Colors.white : Colors.black;
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-          child: Column(
-            children: <Widget>[
-              const SizedBox(height: 16),
-              Container(
-                height: 300,
-                width: 500,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF9FD),
-                  borderRadius: BorderRadius.circular(32),
-                ),
-                child: Center(
-                  child: Image.asset(
-                    imagePath,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.image_outlined, size: 70),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 26),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  color: themeTextColor,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: themeTextColor,
-                  height: 1.5,
-                ),
-              ),
-              const Spacer(),
-              _DotsIndicator(currentIndex: currentIndex),
-              const SizedBox(height: 20),
-              Row(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+              child: Column(
                 children: <Widget>[
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: onBack ?? () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: themeTextColor.withOpacity(0.6)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        'Previous',
-                        style: TextStyle(color: themeTextColor),
+                  SizedBox(height: isLandscape ? 4 : 16),
+                  Container(
+                    height: isLandscape ? 200 : 300,
+                    width: isLandscape ? 420 : 500,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF9FD),
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        imagePath,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.image_outlined, size: 70),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: onNext,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF64D2F5),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  SizedBox(height: isLandscape ? 14 : 26),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: isLandscape ? 24 : 32,
+                      fontWeight: FontWeight.w700,
+                      color: themeTextColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: isLandscape ? 15 : 18,
+                      color: themeTextColor,
+                      height: 1.5,
+                    ),
+                  ),
+                  SizedBox(height: isLandscape ? 18 : 28),
+                  _DotsIndicator(currentIndex: currentIndex),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: onBack ?? () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: themeTextColor.withOpacity(0.6)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Previous',
+                            style: TextStyle(color: themeTextColor),
+                          ),
                         ),
                       ),
-                      child: Text(nextText),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: onNext,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF64D2F5),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(nextText),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),

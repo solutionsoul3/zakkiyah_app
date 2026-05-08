@@ -124,6 +124,8 @@ class _TypeScreenState extends State<TypeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       endDrawer: const AppMenuDrawer(),
@@ -153,61 +155,80 @@ class _TypeScreenState extends State<TypeScreen> {
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(20.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        'Type Your Message',
-                        style: TextStyle(fontSize: 30.sp, fontWeight: FontWeight.w500),
-                      ),
-                      SizedBox(height: 14.h),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Expanded(
-                            child: Container(
-                              height: 170.h,
-                              padding: EdgeInsets.all(12.w),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDCDCDC),
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              child: TextField(
-                                controller: _messageController,
-                                focusNode: _messageFocusNode,
-                                readOnly: true,
-                                showCursor: true,
-                                maxLines: null,
-                                expands: true,
-                                style: TextStyle(fontSize: 22.sp, color: Colors.black87),
-                                decoration: InputDecoration(
-                                  hintText: 'Write here..............',
-                                  hintStyle: TextStyle(fontSize: 20.sp, color: Colors.black45),
-                                  border: InputBorder.none,
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        child: Padding(
+                          padding: EdgeInsets.all((isLandscape ? 14 : 20).w),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                'Type Your Message',
+                                style: TextStyle(
+                                  fontSize: (isLandscape ? 18 : 30).sp,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                            ),
+                              SizedBox(height: (isLandscape ? 10 : 14).h),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Container(
+                                      height: (isLandscape ? 100 : 170).h,
+                                      padding: EdgeInsets.all(8.w),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFDCDCDC),
+                                        borderRadius: BorderRadius.circular(10.r),
+                                      ),
+                                      child: TextField(
+                                        controller: _messageController,
+                                        focusNode: _messageFocusNode,
+                                        readOnly: true,
+                                        showCursor: true,
+                                        maxLines: null,
+                                        expands: true,
+                                        style: TextStyle(
+                                          fontSize: (isLandscape ? 16 : 22).sp,
+                                          color: Colors.black87,
+                                        ),
+                                        decoration: InputDecoration(
+                                          hintText: 'Write here..............',
+                                          hintStyle: TextStyle(
+                                            fontSize: (isLandscape ? 14 : 20).sp,
+                                            color: Colors.black45,
+                                          ),
+                                          border: InputBorder.none,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 12.w),
+                                  _speakTile(isLandscape: isLandscape),
+                                ],
+                              ),
+                              SizedBox(height: (isLandscape ? 12 : 18).h),
+                              SizedBox(
+                                height: (isLandscape ? 500 : 500).h,
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.all(14.w),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE5E5E5),
+                                    borderRadius: BorderRadius.circular(18.r),
+                                  ),
+                                  child: _keyboardPreview(),
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(width: 12.w),
-                          _speakTile(),
-                        ],
-                      ),
-                      SizedBox(height: 18.h),
-                      Expanded(
-                        child: Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(14.w),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE5E5E5),
-                            borderRadius: BorderRadius.circular(18.r),
-                          ),
-                          child: _keyboardPreview(),
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -222,27 +243,29 @@ class _TypeScreenState extends State<TypeScreen> {
     required String label,
     required bool isActive,
   }) {
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Container(
       height: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: EdgeInsets.symmetric(horizontal: (isLandscape ? 10 : 16).w),
       color: isActive ? const Color(0xFF1C1C1C) : Colors.transparent,
       child: Row(
         children: <Widget>[
-          Icon(icon, color: Colors.white, size: 20.w),
-          SizedBox(width: 6.w),
+          Icon(icon, color: Colors.white, size: (isLandscape ? 16 : 20).w),
+          SizedBox(width: (isLandscape ? 4 : 6).w),
           Text(
             label,
-            style: TextStyle(color: Colors.white, fontSize: 24.sp),
+            style: TextStyle(color: Colors.white, fontSize: (isLandscape ? 16 : 24).sp),
           ),
         ],
       ),
     );
   }
 
-  Widget _speakTile() {
+  Widget _speakTile({required bool isLandscape}) {
     return Container(
-      width: 80.w,
-      height: 170.h,
+      width: (isLandscape ? 56 : 80).w,
+      height: (isLandscape ? 96 : 170).h,
       padding: EdgeInsets.all(8.w),
       decoration: BoxDecoration(
         color: const Color(0xFFDCDCDC),
@@ -250,41 +273,49 @@ class _TypeScreenState extends State<TypeScreen> {
       ),
       child: Column(
         children: <Widget>[
-          SizedBox(
-            height: 75.h,
+          Expanded(
+            flex: 2,
             child: Image.asset(
               AppImages.speak,
               fit: BoxFit.contain,
               errorBuilder: (_, __, ___) =>
-                  Icon(Icons.record_voice_over, size: 30.w, color: Colors.blueGrey),
+                  Icon(Icons.record_voice_over, size: 24.w, color: Colors.blueGrey),
             ),
           ),
-          InkWell(
-            onTap: _isSpeaking ? _stopSpeaking : _speakMessage,
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 4.h),
-              child: Text(
-                _isSpeaking ? 'Stop' : 'Speak',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: const Color(0xFF2563EB),
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w400,
+          Expanded(
+            child: InkWell(
+              onTap: _isSpeaking ? _stopSpeaking : _speakMessage,
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _isSpeaking ? 'Stop' : 'Speak',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: const Color(0xFF2563EB),
+                      fontSize: (isLandscape ? 11 : 18).sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-          InkWell(
-            onTap: _toggleListening,
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 4.h),
-              child: Text(
-                _isListening ? 'Stop Mic' : 'Voice Type',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _isListening ? const Color(0xFFEA4335) : const Color(0xFF16A34A),
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w400,
+          Expanded(
+            child: InkWell(
+              onTap: _toggleListening,
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _isListening ? 'Stop Mic' : 'Voice Type',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: _isListening ? const Color(0xFFEA4335) : const Color(0xFF16A34A),
+                      fontSize: (isLandscape ? 11 : 18).sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -295,14 +326,21 @@ class _TypeScreenState extends State<TypeScreen> {
   }
 
   Widget _keyboardPreview() {
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Column(
       children: <Widget>[
-        Container(
-          height: 46.h,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Keyboard',
-            style: TextStyle(fontSize: 24.sp, color: Colors.black54),
+        SizedBox(
+          height: (isLandscape ? 40 : 46).h,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Keyboard',
+              style: TextStyle(
+                fontSize: (isLandscape ? 16 : 24).sp,
+                color: Colors.black54,
+              ),
+            ),
           ),
         ),
         SizedBox(height: 6.h),
@@ -315,7 +353,7 @@ class _TypeScreenState extends State<TypeScreen> {
                 type: VirtualKeyboardType.Alphanumeric,
                 textController: _messageController,
                 textColor: Colors.black87,
-                fontSize: 22.sp,
+                fontSize: (isLandscape ? 12 : 22).sp,
                 alwaysCaps: false,
                 reverseLayout: false,
                 defaultLayouts: const <VirtualKeyboardDefaultLayouts>[
