@@ -125,21 +125,15 @@ class ResponsiveWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final MediaQueryData media = MediaQuery.of(context);
     final bool isLandscape = media.orientation == Orientation.landscape;
-    final bool isTablet = media.size.shortestSide >= 600;
 
-    final double textScale = isLandscape ? (isTablet ? 0.78 : 0.76) : 1.0;
-    final double widthScale = isLandscape ? (isTablet ? 0.86 : 0.84) : 1.0;
-    final double constrainedWidth = media.size.width * widthScale;
+    if (!isLandscape) return child;
+
+    final bool isTablet = media.size.shortestSide >= 600;
+    final double textScale = isTablet ? 0.82 : 0.78;
 
     return MediaQuery(
       data: media.copyWith(textScaler: TextScaler.linear(textScale)),
-      child: Center(
-        child: SizedBox(
-          width: constrainedWidth,
-          height: media.size.height,
-          child: child,
-        ),
-      ),
+      child: child,
     );
   }
 }

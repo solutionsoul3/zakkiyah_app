@@ -138,126 +138,85 @@ class _TypeScreenState extends State<TypeScreen> {
                 topBarHeight: 56,
                 topBarPadding: EdgeInsets.symmetric(horizontal: 8.w),
                 greetingText: 'Good Morning Zakkiyah',
-                titleContent: Row(
-                  children: <Widget>[
-                    _topBreadcrumb(
-                      icon: Icons.home,
-                      label: 'Home',
-                      isActive: false,
-                    ),
-                    SizedBox(width: 2.w),
-                    _topBreadcrumb(
-                      icon: Icons.text_fields,
+                titleContent: const AppHeaderTitle(
+                  segments: <AppHeaderSegment>[
+                    AppHeaderSegment(
                       label: 'Type',
-                      isActive: true,
+                      icon: Icons.text_fields,
                     ),
                   ],
                 ),
               ),
               Expanded(
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                        child: Padding(
-                          padding: EdgeInsets.all((isLandscape ? 14 : 20).w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                'Type Your Message',
-                                style: TextStyle(
-                                  fontSize: (isLandscape ? 18 : 30).sp,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: (isLandscape ? 10 : 14).h),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Container(
-                                      height: (isLandscape ? 100 : 170).h,
-                                      padding: EdgeInsets.all(8.w),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFDCDCDC),
-                                        borderRadius: BorderRadius.circular(10.r),
-                                      ),
-                                      child: TextField(
-                                        controller: _messageController,
-                                        focusNode: _messageFocusNode,
-                                        readOnly: true,
-                                        showCursor: true,
-                                        maxLines: null,
-                                        expands: true,
-                                        style: TextStyle(
-                                          fontSize: (isLandscape ? 16 : 22).sp,
-                                          color: Colors.black87,
-                                        ),
-                                        decoration: InputDecoration(
-                                          hintText: 'Write here..............',
-                                          hintStyle: TextStyle(
-                                            fontSize: (isLandscape ? 14 : 20).sp,
-                                            color: Colors.black45,
-                                          ),
-                                          border: InputBorder.none,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 12.w),
-                                  _speakTile(isLandscape: isLandscape),
-                                ],
-                              ),
-                              SizedBox(height: (isLandscape ? 12 : 18).h),
-                              SizedBox(
-                                height: (isLandscape ? 500 : 500).h,
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: EdgeInsets.all(14.w),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE5E5E5),
-                                    borderRadius: BorderRadius.circular(18.r),
-                                  ),
-                                  child: _keyboardPreview(),
-                                ),
-                              ),
-                            ],
-                          ),
+                child: Padding(
+                  padding: EdgeInsets.all((isLandscape ? 14 : 20).w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Type Your Message',
+                        style: TextStyle(
+                          fontSize: (isLandscape ? 18 : 30).sp,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    );
-                  },
+                      SizedBox(height: (isLandscape ? 10 : 14).h),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Expanded(
+                            child: Container(
+                              height: (isLandscape ? 80 : 170).h,
+                              padding: EdgeInsets.all(8.w),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFDCDCDC),
+                                borderRadius: BorderRadius.circular(10.r),
+                              ),
+                              child: TextField(
+                                controller: _messageController,
+                                focusNode: _messageFocusNode,
+                                readOnly: true,
+                                showCursor: true,
+                                maxLines: null,
+                                expands: true,
+                                style: TextStyle(
+                                  fontSize: (isLandscape ? 16 : 22).sp,
+                                  color: Colors.black87,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Write here..............',
+                                  hintStyle: TextStyle(
+                                    fontSize: (isLandscape ? 14 : 20).sp,
+                                    color: Colors.black45,
+                                  ),
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          _speakTile(isLandscape: isLandscape),
+                        ],
+                      ),
+                      SizedBox(height: (isLandscape ? 8 : 18).h),
+                      Expanded(
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(14.w),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE5E5E5),
+                            borderRadius: BorderRadius.circular(18.r),
+                          ),
+                          child: _keyboardPreview(),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _topBreadcrumb({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-  }) {
-    final bool isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
-    return Container(
-      height: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: (isLandscape ? 10 : 16).w),
-      color: isActive ? const Color(0xFF1C1C1C) : Colors.transparent,
-      child: Row(
-        children: <Widget>[
-          Icon(icon, color: Colors.white, size: (isLandscape ? 16 : 20).w),
-          SizedBox(width: (isLandscape ? 4 : 6).w),
-          Text(
-            label,
-            style: TextStyle(color: Colors.white, fontSize: (isLandscape ? 16 : 24).sp),
-          ),
-        ],
       ),
     );
   }

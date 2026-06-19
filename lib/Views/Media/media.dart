@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:zakkiyah_app/constants/images/images.dart';
@@ -27,6 +29,26 @@ class _MediaScreenState extends State<MediaScreen> {
     _MediaMenuItem(label: 'Trash', icon: Icons.delete_outline),
   ];
 
+  bool get _isLandscape =>
+      MediaQuery.of(context).orientation == Orientation.landscape;
+
+  double _tileShortSide(double width, double height) =>
+      math.min(width, height);
+
+  Widget _circleMediaButton({
+    required IconData icon,
+    required double diameter,
+    Color backgroundColor = Colors.white,
+    Color iconColor = Colors.black,
+  }) {
+    return Container(
+      width: diameter,
+      height: diameter,
+      decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
+      child: Icon(icon, color: iconColor, size: diameter * 0.52),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -41,14 +63,15 @@ class _MediaScreenState extends State<MediaScreen> {
               AppScreenHeader(
                 topBarHeight: 56,
                 topBarPadding: EdgeInsets.symmetric(horizontal: 8.w),
-                titleContent: Row(
-                  children: <Widget>[
-                    _topTab('Home', false),
-                    SizedBox(width: 8.w),
-                    _topTab('Media', true),
+                greetingText: 'Good Morning Zakkiyah',
+                titleContent: const AppHeaderTitle(
+                  segments: <AppHeaderSegment>[
+                    AppHeaderSegment(
+                      label: 'Media',
+                      icon: Icons.perm_media_outlined,
+                    ),
                   ],
                 ),
-                greetingText: 'Good Morning Zakkiyah',
               ),
               Expanded(
                 child: Container(
@@ -71,87 +94,63 @@ class _MediaScreenState extends State<MediaScreen> {
     );
   }
 
-  Widget _topTab(String title, bool active) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        color: active ? colorScheme.onSurface : colorScheme.onSurface.withOpacity(0.9),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(
-            active ? Icons.people_alt : Icons.home_filled,
-            color: colorScheme.surface,
-            size: 18.w,
-          ),
-          SizedBox(width: 8.w),
-          Text(
-            title,
-            style: textTheme.titleMedium?.copyWith(
-              color: colorScheme.surface,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _leftMenu() {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final bool isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isLandscape = _isLandscape;
     return Container(
-      width: (isLandscape ? 124 : 145).w,
+      width: (isLandscape ? 110 : 145).w,
       decoration: BoxDecoration(
         color: isDark ? colorScheme.surfaceContainerHighest : colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(4.r),
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            _menuButton(
-              label: 'Go Back',
-              icon: Icons.reply_rounded,
-              selected: false,
-              onTap: () => Navigator.pop(context),
-            ),
-            for (int i = 0; i < _menuItems.length; i++)
-              _menuButton(
-                label: _menuItems[i].label,
-                icon: _menuItems[i].icon,
-                selected: i == _selectedIndex,
-                onTap: () => setState(() => _selectedIndex = i),
-              ),
-            SizedBox(height: 8.h),
-            Container(
-              margin: EdgeInsets.only(bottom: 10.h),
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(24.r),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  _pagerButton(Icons.arrow_back, false),
-                  SizedBox(width: 8.w),
-                  Text(
-                    '1 / 1',
-                    style: TextStyle(fontSize: (isLandscape ? 9 : 11).sp),
+      child: Column(
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                _menuButton(
+                  label: 'Go Back',
+                  icon: Icons.reply_rounded,
+                  selected: false,
+                  onTap: () => Navigator.pop(context),
+                ),
+                for (int i = 0; i < _menuItems.length; i++)
+                  _menuButton(
+                    label: _menuItems[i].label,
+                    icon: _menuItems[i].icon,
+                    selected: i == _selectedIndex,
+                    onTap: () => setState(() => _selectedIndex = i),
                   ),
-                  SizedBox(width: 8.w),
-                  _pagerButton(Icons.arrow_forward, true),
-                ],
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Container(
+            margin: EdgeInsets.only(bottom: (isLandscape ? 4 : 10).h),
+            padding: EdgeInsets.symmetric(
+              horizontal: (isLandscape ? 4 : 8).w,
+              vertical: (isLandscape ? 4 : 6).h,
+            ),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(24.r),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _pagerButton(Icons.arrow_back, false),
+                SizedBox(width: (isLandscape ? 4 : 8).w),
+                Text(
+                  '1 / 1',
+                  style: TextStyle(fontSize: (isLandscape ? 9 : 11).sp),
+                ),
+                SizedBox(width: (isLandscape ? 4 : 8).w),
+                _pagerButton(Icons.arrow_forward, true),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -165,8 +164,7 @@ class _MediaScreenState extends State<MediaScreen> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final bool isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isLandscape = _isLandscape;
     final bool useDarkSelectedStyle = isDark && selected;
     final bool useLightSelectedStyle = !isDark && selected;
     return InkWell(
@@ -211,12 +209,13 @@ class _MediaScreenState extends State<MediaScreen> {
 
   Widget _pagerButton(IconData icon, bool dark) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isLandscape = _isLandscape;
     return CircleAvatar(
-      radius: 18.r,
+      radius: (isLandscape ? 12 : 18).r,
       backgroundColor: dark ? colorScheme.onSurface : colorScheme.surface,
       child: Icon(
         icon,
-        size: 16.w,
+        size: (isLandscape ? 12 : 16).w,
         color: dark ? colorScheme.surface : colorScheme.onSurface,
       ),
     );
@@ -224,12 +223,28 @@ class _MediaScreenState extends State<MediaScreen> {
 
   Widget _mainGrid() {
     final List<Widget> tiles = _tilesForSelectedMenu();
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 14.w,
-      mainAxisSpacing: 14.h,
-      childAspectRatio: 0.7,
-      children: tiles,
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        const int crossAxisCount = kTileCrossAxisCount;
+        return GridView.builder(
+          itemCount: tiles.length,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 14.w,
+            mainAxisSpacing: 14.h,
+            childAspectRatio: gridChildAspectRatioForFit(
+              maxWidth: constraints.maxWidth,
+              maxHeight: constraints.maxHeight,
+              crossAxisCount: crossAxisCount,
+              itemCount: tiles.length,
+              mainAxisSpacing: 14.h,
+              crossAxisSpacing: 14.w,
+            ),
+          ),
+          itemBuilder: (_, int index) => tiles[index],
+        );
+      },
     );
   }
 
@@ -302,16 +317,20 @@ class _MediaScreenState extends State<MediaScreen> {
   }
 
   Widget _uploadTile() {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isLandscape = _isLandscape;
     return _tileFrame(
       child: Container(
         color: _fixedTileGrey,
         child: Center(
           child: Container(
-            width: 70.w,
-            height: 70.w,
-            decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: Icon(Icons.file_upload_outlined, color: Colors.black, size: 46.w),
+            width: (isLandscape ? 48 : 70).w,
+            height: (isLandscape ? 48 : 70).w,
+            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            child: Icon(
+              Icons.file_upload_outlined,
+              color: Colors.black,
+              size: (isLandscape ? 30 : 46).w,
+            ),
           ),
         ),
       ),
@@ -320,83 +339,134 @@ class _MediaScreenState extends State<MediaScreen> {
 
   Widget _photoTile({required bool play}) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return _tileFrame(
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          if (play) Container(color: _fixedTileGrey),
-          Image.asset(AppImages.photo, fit:BoxFit.cover),
-          if (play) Container(color: colorScheme.scrim.withOpacity(0.25)),
-          if (play)
-            Center(
-              child: CircleAvatar(
-                radius: 26.r,
-                backgroundColor: colorScheme.surface,
-                child: Icon(Icons.play_arrow_rounded, color: colorScheme.onSurface, size: 34.w),
-              ),
-            ),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double shortSide = _tileShortSide(
+          constraints.maxWidth,
+          constraints.maxHeight,
+        );
+        final double playDiameter = shortSide * 0.34;
+
+        return _tileFrame(
+          child: Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              if (play) Container(color: _fixedTileGrey),
+              Image.asset(AppImages.photo, fit: BoxFit.cover),
+              if (play) Container(color: colorScheme.scrim.withOpacity(0.25)),
+              if (play)
+                Center(
+                  child: _circleMediaButton(
+                    icon: Icons.play_arrow_rounded,
+                    diameter: playDiameter,
+                    backgroundColor: colorScheme.surface,
+                    iconColor: colorScheme.onSurface,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _audioTile({required bool selected}) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
-    return _tileFrame(
-      child: Container(
-        color: _fixedTileGrey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            CircleAvatar(
-              radius: 34.r,
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.volume_up_rounded,
-                color: Colors.black,
-                size: 38.w,
-              ),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double shortSide = _tileShortSide(
+          constraints.maxWidth,
+          constraints.maxHeight,
+        );
+        final double iconDiameter = shortSide * 0.38;
+        final double labelSize = shortSide * 0.11;
+
+        return _tileFrame(
+          selected: selected,
+          child: Container(
+            color: _fixedTileGrey,
+            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Expanded(
+                  flex: 3,
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _circleMediaButton(
+                        icon: Icons.volume_up_rounded,
+                        diameter: iconDiameter,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '10 Oct 2025',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleSmall?.copyWith(
+                          fontSize: labelSize,
+                          color: colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 10.h),
-            Text(
-              '10 Oct 2025',
-              style: textTheme.titleSmall?.copyWith(
-                fontSize: 20.sp,
-                color: colorScheme.onSecondaryContainer,
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _drawingTile() {
+    final bool isLandscape = _isLandscape;
     return _tileFrame(
       child: Container(
         color: _fixedTileGrey,
         child: Padding(
-          padding: EdgeInsets.all(14.w),
-          child: Image.asset(AppImages.drawing, height:20,width:20),
+          padding: EdgeInsets.all((isLandscape ? 8 : 14).w),
+          child: Image.asset(
+            AppImages.drawing,
+            height: (isLandscape ? 14 : 20).h,
+            width: (isLandscape ? 14 : 20).w,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
   }
 
   Widget _albumTile(String title) {
+    final bool isLandscape = _isLandscape;
     return _tileFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
-            padding: EdgeInsets.fromLTRB(10.w, 8.h, 10.w, 6.h),
+            padding: EdgeInsets.fromLTRB(
+              (isLandscape ? 6 : 10).w,
+              (isLandscape ? 4 : 8).h,
+              (isLandscape ? 6 : 10).w,
+              (isLandscape ? 3 : 6).h,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 3.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: (isLandscape ? 6 : 10).w,
+                    vertical: (isLandscape ? 2 : 3).h,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF71D2F8),
                     borderRadius: BorderRadius.circular(12.r),
@@ -404,15 +474,27 @@ class _MediaScreenState extends State<MediaScreen> {
                   child: Text(
                     title,
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: (isLandscape ? 9 : 11).sp,
                       color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                SizedBox(height: 3.h),
-                Text('Album Name', style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500)),
-                Text('Write Here', style: TextStyle(fontSize: 11.sp, color: Colors.black54)),
+                SizedBox(height: (isLandscape ? 2 : 3).h),
+                Text(
+                  'Album Name',
+                  style: TextStyle(
+                    fontSize: (isLandscape ? 10 : 13).sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  'Write Here',
+                  style: TextStyle(
+                    fontSize: (isLandscape ? 8 : 11).sp,
+                    color: Colors.black54,
+                  ),
+                ),
               ],
             ),
           ),
@@ -436,6 +518,7 @@ class _MediaScreenState extends State<MediaScreen> {
   }
 
   Widget _statusTile(String label, IconData icon) {
+    final bool isLandscape = _isLandscape;
     return _tileFrame(
       child: Container(
         color: _fixedTileGrey,
@@ -443,9 +526,15 @@ class _MediaScreenState extends State<MediaScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Icon(icon, size: 36.w, color: Colors.black54),
-              SizedBox(height: 8.h),
-              Text(label, style: TextStyle(fontSize: 14.sp, color: Colors.black87)),
+              Icon(icon, size: (isLandscape ? 24 : 36).w, color: Colors.black54),
+              SizedBox(height: (isLandscape ? 4 : 8).h),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: (isLandscape ? 11 : 14).sp,
+                  color: Colors.black87,
+                ),
+              ),
             ],
           ),
         ),

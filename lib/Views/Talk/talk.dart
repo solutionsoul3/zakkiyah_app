@@ -105,15 +105,12 @@ class _TalkScreenState extends State<TalkScreen> {
               AppScreenHeader(
                 topBarHeight: 56,
                 topBarPadding: EdgeInsets.symmetric(horizontal: 8.w),
-                titleContent: Row(
-                  children: <Widget>[
-                    Icon(Icons.home, size: 18.w),
-                    SizedBox(width: 6.w),
-                    Text('Home', style: TextStyle(fontSize: 20.sp)),
-                    SizedBox(width: 12.w),
-                    Icon(Icons.label_outline, size: 18.w),
-                    SizedBox(width: 6.w),
-                    Text('Talk', style: TextStyle(fontSize: 20.sp)),
+                titleContent: const AppHeaderTitle(
+                  segments: <AppHeaderSegment>[
+                    AppHeaderSegment(
+                      label: 'Talk',
+                      icon: Icons.record_voice_over_outlined,
+                    ),
                   ],
                 ),
               ),
@@ -128,14 +125,23 @@ class _TalkScreenState extends State<TalkScreen> {
                       Expanded(
                         child: LayoutBuilder(
                           builder: (BuildContext context, BoxConstraints constraints) {
-                            final int crossAxisCount = constraints.maxWidth > 900 ? 3 : 2;
+                            final int crossAxisCount =
+                                responsiveCrossAxisCount(context, width: constraints.maxWidth);
                             return GridView.builder(
                               itemCount: _categories.length,
+                              physics: const NeverScrollableScrollPhysics(),
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: crossAxisCount,
                                 crossAxisSpacing: 14.w,
                                 mainAxisSpacing: 14.h,
-                                childAspectRatio: 1.0,
+                                childAspectRatio: gridChildAspectRatioForFit(
+                                  maxWidth: constraints.maxWidth,
+                                  maxHeight: constraints.maxHeight,
+                                  crossAxisCount: crossAxisCount,
+                                  itemCount: _categories.length,
+                                  mainAxisSpacing: 14.h,
+                                  crossAxisSpacing: 14.w,
+                                ),
                               ),
                               itemBuilder: (_, int index) {
                                 final _ImportantCategoryData category = _categories[index];

@@ -66,9 +66,9 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
               AppScreenHeader(
                 topBarHeight: 56,
                 topBarPadding: EdgeInsets.symmetric(horizontal: 8.w),
-                titleContent: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(children: _buildBreadcrumbs()),
+                titleContent: AppHeaderTitle.breadcrumbs(
+                  titles: widget.breadcrumbTitles ?? <String>['Home', widget.title],
+                  assetForTitle: _breadcrumbAssetForTitle,
                 ),
               ),
               Expanded(
@@ -88,17 +88,31 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
                           },
                           itemBuilder: (_, int pageIndex) {
                             final List<TileItemData> items = _pageItems[pageIndex];
-                            return GridView.builder(
-                              itemCount: items.length,
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 10.w,
-                                mainAxisSpacing: 10.h,
-                                childAspectRatio: 0.68,
-                              ),
-                              itemBuilder: (_, int index) {
-                                final int actualIndex = (pageIndex * _tilesPerPage) + index;
-                                return _itemCard(items[index], actualIndex);
+                            return LayoutBuilder(
+                              builder: (BuildContext context, BoxConstraints constraints) {
+                                final int crossAxisCount =
+                                    responsiveCrossAxisCount(context, width: constraints.maxWidth);
+                                return GridView.builder(
+                                  itemCount: items.length,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: 10.w,
+                                    mainAxisSpacing: 10.h,
+                                    childAspectRatio: gridChildAspectRatioForFit(
+                                      maxWidth: constraints.maxWidth,
+                                      maxHeight: constraints.maxHeight,
+                                      crossAxisCount: crossAxisCount,
+                                      itemCount: items.length,
+                                      mainAxisSpacing: 10.h,
+                                      crossAxisSpacing: 10.w,
+                                    ),
+                                  ),
+                                  itemBuilder: (_, int index) {
+                                    final int actualIndex = (pageIndex * _tilesPerPage) + index;
+                                    return _itemCard(items[index], actualIndex);
+                                  },
+                                );
                               },
                             );
                           },
@@ -119,84 +133,114 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isMediaScreen = widget.title.toLowerCase() == 'media';
     final bool canModifyItem = _isEditing && item.isCustom;
-    return VoiceTap(
-      announceText: item.title,
-      onTap: () async {},
-      borderRadius: BorderRadius.circular(14.r),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF202020) : const Color(0xFFFAFAFA),
-          borderRadius: BorderRadius.circular(14.r),
-        ),
-        child: Column(
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double tileShort = constraints.maxHeight < constraints.maxWidth
+            ? constraints.maxHeight
+            : constraints.maxWidth;
+        final double actionSize = (tileShort * 0.17).clamp(24.0, 34.0);
+        final double imageSize = (tileShort * 0.42).clamp(52.0, 120.0);
+        final double labelFontSize = (tileShort * 0.085).clamp(11.0, 16.0);
+
+        return Stack(
+          clipBehavior: Clip.none,
           children: <Widget>[
-            if (canModifyItem)
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
-                child: Row(
-                  children: <Widget>[
-                    _circleAction(
-                      color: Colors.red,
-                      icon: Icons.delete,
-                      announceText: 'Delete ${item.title}',
-                      onTap: () => _deleteItem(index),
-                    ),
-                    const Spacer(),
-                    _circleAction(
-                      color: Colors.black,
-                      icon: Icons.edit,
-                      announceText: 'Edit ${item.title}',
-                      onTap: () => _editItem(index),
-                    ),
-                  ],
+            VoiceTap(
+              announceText: item.title,
+              onTap: () async {},
+              borderRadius: BorderRadius.circular(14.r),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF202020) : const Color(0xFFFAFAFA),
+                  borderRadius: BorderRadius.circular(14.r),
                 ),
-              )
-            else
-              SizedBox(height: 10.h),
-            Expanded(
-              child: isMediaScreen
-                  ? _buildMediaPreview(item.title)
-                  : Center(
-                      child: Image.asset(
-                        item.imagePath ?? AppImages.shapes,
-                        width: 120.w,
-                        height: 120.h,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.image_outlined,
-                          color: isDark ? Colors.white54 : Colors.black45,
-                          size: 34.w,
+                child: Column(
+                  children: <Widget>[
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          8.w,
+                          canModifyItem ? actionSize * 0.45 : 10.h,
+                          8.w,
+                          4.h,
+                        ),
+                        child: isMediaScreen
+                            ? _buildMediaPreview(item.title, imageSize: imageSize)
+                            : Center(
+                                child: Image.asset(
+                                  item.imagePath ?? AppImages.shapes,
+                                  width: imageSize,
+                                  height: imageSize,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                    Icons.image_outlined,
+                                    color: isDark ? Colors.white54 : Colors.black45,
+                                    size: imageSize * 0.35,
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 4.w),
+                      decoration: BoxDecoration(
+                        color: isMediaScreen
+                            ? _mediaLabelBackground(item.title)
+                            : (isDark ? const Color(0xFF3C3C3C) : const Color(0xFFF0F0F0)),
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(14.r),
+                          bottomRight: Radius.circular(14.r),
+                        ),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          item.title,
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: labelFontSize,
+                            fontWeight: FontWeight.w500,
+                            color: isMediaScreen
+                                ? const Color(0xFF2F3A4A)
+                                : (isDark ? Colors.white : Colors.black),
+                          ),
                         ),
                       ),
                     ),
-            ),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 8.h),
-              decoration: BoxDecoration(
-                color: isMediaScreen
-                    ? _mediaLabelBackground(item.title)
-                    : (isDark ? const Color(0xFF3C3C3C) : const Color(0xFFF0F0F0)),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(14.r),
-                  bottomRight: Radius.circular(14.r),
-                ),
-              ),
-              child: Text(
-                item.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
-                  color: isMediaScreen
-                      ? const Color(0xFF2F3A4A)
-                      : (isDark ? Colors.white : Colors.black),
+                  ],
                 ),
               ),
             ),
+            if (canModifyItem) ...<Widget>[
+              Positioned(
+                top: 4.h,
+                left: 4.w,
+                child: _circleAction(
+                  color: Colors.red,
+                  icon: Icons.delete,
+                  announceText: 'Delete ${item.title}',
+                  onTap: () => _deleteItem(index),
+                  size: actionSize,
+                ),
+              ),
+              Positioned(
+                top: 4.h,
+                right: 4.w,
+                child: _circleAction(
+                  color: Colors.black,
+                  icon: Icons.edit,
+                  announceText: 'Edit ${item.title}',
+                  onTap: () => _editItem(index),
+                  size: actionSize,
+                ),
+              ),
+            ],
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -219,7 +263,7 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
     }
   }
 
-  Widget _buildMediaPreview(String title) {
+  Widget _buildMediaPreview(String title, {required double imageSize}) {
     final String key = title.toLowerCase();
     final Color frameColor = key == 'albums' || key == 'audio'
         ? const Color(0xFFFFE7A8)
@@ -240,15 +284,15 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
     if (key == 'download' || key == 'trash') {
       return Center(
         child: Container(
-          width: 120.w,
-          height: 120.h,
+          width: imageSize,
+          height: imageSize,
           decoration: BoxDecoration(
             color: frameColor,
             borderRadius: BorderRadius.circular(16.r),
           ),
           child: Icon(
             key == 'download' ? Icons.download_rounded : Icons.delete_outline_rounded,
-            size: 48.w,
+            size: imageSize * 0.4,
             color: key == 'download' ? const Color(0xFF2E7DFF) : const Color(0xFF7B8A9D),
           ),
         ),
@@ -257,85 +301,35 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
 
     return Center(
       child: Container(
-        width: 120.w,
-        height: 120.h,
+        width: imageSize,
+        height: imageSize,
         decoration: BoxDecoration(
           color: frameColor,
           borderRadius: BorderRadius.circular(16.r),
         ),
-        padding: EdgeInsets.all(10.w),
+        padding: EdgeInsets.all(imageSize * 0.08),
         child: Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
+          spacing: imageSize * 0.07,
+          runSpacing: imageSize * 0.07,
           alignment: WrapAlignment.center,
           children: List<Widget>.generate(
             6,
             (int i) => Container(
-              width: 28.w,
-              height: 28.h,
+              width: imageSize * 0.22,
+              height: imageSize * 0.22,
               decoration: BoxDecoration(
                 color: dots[i % dots.length],
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 1.6),
               ),
               child: key == 'videos'
-                  ? Icon(Icons.play_arrow_rounded, size: 14.w, color: Colors.white)
+                  ? Icon(Icons.play_arrow_rounded, size: imageSize * 0.12, color: Colors.white)
                   : null,
             ),
           ),
         ),
       ),
     );
-  }
-
-  List<Widget> _buildBreadcrumbs() {
-    final List<String> titles = widget.breadcrumbTitles ?? <String>['Home', widget.title];
-    return List<Widget>.generate(titles.length, (int index) {
-      final bool isActive = index == titles.length - 1;
-      final String? imagePath = _breadcrumbAssetForTitle(titles[index]);
-      return Padding(
-        padding: EdgeInsets.only(right: 10.w),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-          decoration: BoxDecoration(
-            color: isActive ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(10.r),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              if (imagePath != null)
-                Image.asset(
-                  imagePath,
-                  width: 18.w,
-                  height: 18.w,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Icon(
-                    Icons.label_outline,
-                    color: isActive ? Colors.black : Colors.white,
-                    size: 18.w,
-                  ),
-                )
-              else
-                Icon(
-                  Icons.label_outline,
-                  color: isActive ? Colors.black : Colors.white,
-                  size: 18.w,
-                ),
-              SizedBox(width: 6.w),
-              Text(
-                titles[index],
-                style: TextStyle(
-                  color: isActive ? Colors.black : Colors.white,
-                  fontSize: 20.sp,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
   }
 
   String? _breadcrumbAssetForTitle(String title) {
@@ -442,15 +436,17 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
     required IconData icon,
     required String announceText,
     required VoidCallback onTap,
+    double? size,
   }) {
+    final double actionSize = size ?? 28.w;
     return VoiceTap(
       announceText: announceText,
       onTap: () async => onTap(),
       borderRadius: BorderRadius.circular(999.r),
       child: CircleAvatar(
-        radius: 12.r,
+        radius: actionSize / 2,
         backgroundColor: color,
-        child: Icon(icon, color: Colors.white, size: 14.w),
+        child: Icon(icon, color: Colors.white, size: actionSize * 0.52),
       ),
     );
   }

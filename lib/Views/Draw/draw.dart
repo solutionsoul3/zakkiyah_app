@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zakkiyah_app/widgets/app_menu_drawer.dart';
-import 'package:zakkiyah_app/widgets/menu_drawer_button.dart';
+import 'package:zakkiyah_app/widgets/app_screen_header.dart';
 import 'package:zakkiyah_app/widgets/responsive_frame.dart';
 
 class DrawScreen extends StatefulWidget {
@@ -23,19 +23,81 @@ class _DrawScreenState extends State<DrawScreen> {
   Color _selectedColor = Colors.black;
   bool _eraserMode = false;
   double _strokeWidth = 5;
+  int? _expandedShadeIndex;
 
-  static const List<Color> _palette = <Color>[
-    Colors.black,
-    Color(0xFFB5B5B5),
-    Color(0xFFB6003F),
-    Color(0xFFFF1224),
-    Color(0xFFEC95A3),
-    Color(0xFFFF8500),
-    Color(0xFFF5E80F),
-    Color(0xFF9EE11A),
-    Color(0xFF1DA6D2),
-    Color(0xFF353FA5),
-    Color(0xFF6C3292),
+  static const List<_PaletteEntry> _palette = <_PaletteEntry>[
+    _PaletteEntry(
+      Colors.black,
+      shades: <Color>[
+        Color(0xFF000000),
+        Color(0xFF424242),
+        Color(0xFF757575),
+        Color(0xFFB5B5B5),
+      ],
+    ),
+    _PaletteEntry(
+      Color(0xFFB6003F),
+      shades: <Color>[
+        Color(0xFF5C001F),
+        Color(0xFFB6003F),
+        Color(0xFFFF1224),
+        Color(0xFFEC95A3),
+      ],
+    ),
+    _PaletteEntry(
+      Color(0xFFFF8500),
+      shades: <Color>[
+        Color(0xFF994F00),
+        Color(0xFFFF8500),
+        Color(0xFFFFB04D),
+        Color(0xFFFFD9A3),
+      ],
+    ),
+    _PaletteEntry(
+      Color(0xFFF5E80F),
+      shades: <Color>[
+        Color(0xFF8A8500),
+        Color(0xFFF5E80F),
+        Color(0xFFFFF44D),
+        Color(0xFFFFF9A3),
+      ],
+    ),
+    _PaletteEntry(
+      Color(0xFF9EE11A),
+      shades: <Color>[
+        Color(0xFF4E7000),
+        Color(0xFF9EE11A),
+        Color(0xFFB8F04D),
+        Color(0xFFD4F9A3),
+      ],
+    ),
+    _PaletteEntry(
+      Color(0xFF1DA6D2),
+      shades: <Color>[
+        Color(0xFF0E5A73),
+        Color(0xFF1DA6D2),
+        Color(0xFF5CC4E8),
+        Color(0xFFA3E0F5),
+      ],
+    ),
+    _PaletteEntry(
+      Color(0xFF353FA5),
+      shades: <Color>[
+        Color(0xFF1A2052),
+        Color(0xFF353FA5),
+        Color(0xFF5C6AD4),
+        Color(0xFFA3ABE8),
+      ],
+    ),
+    _PaletteEntry(
+      Color(0xFF6C3292),
+      shades: <Color>[
+        Color(0xFF361849),
+        Color(0xFF6C3292),
+        Color(0xFF9B5CC4),
+        Color(0xFFD4A3E8),
+      ],
+    ),
   ];
 
   @override
@@ -50,13 +112,35 @@ class _DrawScreenState extends State<DrawScreen> {
           tabletMaxWidth: 1300,
           child: Column(
             children: <Widget>[
-              _topBar(),
+              AppScreenHeader(
+                topBarHeight: 58,
+                topBarPadding: EdgeInsets.symmetric(horizontal: 10.w),
+                greetingText: 'Good Morning Zakkiyah',
+                titleContent: const AppHeaderTitle(
+                  segments: <AppHeaderSegment>[
+                    AppHeaderSegment(
+                      label: 'Draw',
+                      icon: Icons.brush,
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
-                child: Column(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    _actionRow(isLandscape: isLandscape),
-                    Expanded(child: _drawingCanvas()),
-                    _bottomTools(isLandscape: isLandscape),
+                    _leftToolsPanel(isLandscape: isLandscape),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Column(
+                        children: <Widget>[
+                          _actionRow(isLandscape: isLandscape),
+                          if (_expandedShadeIndex != null)
+                            _shadeBar(isLandscape: isLandscape),
+                          Expanded(child: _drawingCanvas()),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -67,89 +151,146 @@ class _DrawScreenState extends State<DrawScreen> {
     );
   }
 
-  Widget _topBar() {
+  Widget _leftToolsPanel({required bool isLandscape}) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final double dotSize = (isLandscape ? 28 : 34).w;
     return Container(
-      height: 58.h,
-      color: Colors.black,
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
-      child: Row(
-        children: <Widget>[
-          _crumb(Icons.home, 'Home'),
-          SizedBox(width: 18.w),
-          _crumb(Icons.brush, 'Draw'),
-          const Spacer(),
-          const MenuDrawerButton(),
-        ],
+      width: (isLandscape ? 72 : 84).w,
+      margin: EdgeInsets.only(left: 8.w, bottom: 8.h),
+      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 6.w),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFD9D9D9),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            ...List<Widget>.generate(_palette.length, (int index) {
+              final _PaletteEntry entry = _palette[index];
+              final bool familySelected = !_eraserMode &&
+                  (entry.color == _selectedColor || entry.shades.contains(_selectedColor));
+              final bool expanded = _expandedShadeIndex == index;
+
+              return Padding(
+                padding: EdgeInsets.only(bottom: 8.h),
+                child: _colorDot(
+                  entry.color,
+                  size: dotSize,
+                  selected: familySelected,
+                  onTap: () {
+                    setState(() {
+                      _expandedShadeIndex = expanded ? null : index;
+                      _selectedColor = entry.color;
+                      _eraserMode = false;
+                      _strokeWidth = 5;
+                    });
+                  },
+                ),
+              );
+            }),
+            SizedBox(height: 8.h),
+            Divider(height: 1, color: isDark ? Colors.white24 : Colors.black26),
+            SizedBox(height: 8.h),
+            _toolCircle(
+              icon: Icons.pan_tool_alt_outlined,
+              selected: !_eraserMode,
+              onTap: () => setState(() {
+                _eraserMode = false;
+                _expandedShadeIndex = null;
+              }),
+              isLandscape: isLandscape,
+            ),
+            SizedBox(height: 8.h),
+            _toolCircle(
+              icon: Icons.edit,
+              selected: !_eraserMode,
+              onTap: () => setState(() {
+                _eraserMode = false;
+                _strokeWidth = 5;
+              }),
+              isLandscape: isLandscape,
+            ),
+            SizedBox(height: 8.h),
+            _toolCircle(
+              icon: Icons.auto_fix_normal,
+              selected: _eraserMode,
+              onTap: () => setState(() {
+                _eraserMode = true;
+                _strokeWidth = 18;
+                _expandedShadeIndex = null;
+              }),
+              isLandscape: isLandscape,
+            ),
+            SizedBox(height: 8.h),
+            _toolCircle(icon: Icons.undo, onTap: _undoStroke, isLandscape: isLandscape),
+            SizedBox(height: 8.h),
+            _toolCircle(icon: Icons.clear, onTap: _clearAll, isLandscape: isLandscape),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _crumb(IconData icon, String text) {
-    return Row(
-      children: <Widget>[
-        Icon(icon, color: Colors.white, size: 20.w),
-        SizedBox(width: 6.w),
-        Text(text, style: TextStyle(color: Colors.white, fontSize: 20.sp)),
-      ],
-    );
-  }
+  Widget _shadeBar({required bool isLandscape}) {
+    final int? index = _expandedShadeIndex;
+    if (index == null || index < 0 || index >= _palette.length) {
+      return const SizedBox.shrink();
+    }
 
-  Widget _bottomTools({required bool isLandscape}) {
+    final _PaletteEntry entry = _palette[index];
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final double dotSize = (isLandscape ? 36 : 44).w;
+
     return Container(
-      height: (isLandscape ? 82 : 112).h,
-      color: const Color(0xFFD9D9D9),
+      margin: EdgeInsets.fromLTRB(8.w, 0, 8.w, 8.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8E8E8),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
       child: Row(
         children: <Widget>[
-          Expanded(
-            child: GridView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
-              scrollDirection: Axis.horizontal,
-              itemCount: _palette.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 1,
-                mainAxisSpacing: 8.w,
-              ),
-              itemBuilder: (_, int index) => _colorDot(_palette[index]),
+          Text(
+            'Shades',
+            style: TextStyle(
+              fontSize: (isLandscape ? 12 : 14).sp,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : Colors.black54,
             ),
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
+          SizedBox(width: 12.w),
+          Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: <Widget>[
-                  _toolCircle(
-                    icon: Icons.pan_tool_alt_outlined,
-                    selected: !_eraserMode,
-                    onTap: () => setState(() => _eraserMode = false),
-                    isLandscape: isLandscape,
-                  ),
-                  SizedBox(width: 8.w),
-                  _toolCircle(
-                    icon: Icons.edit,
-                    selected: !_eraserMode,
-                    onTap: () => setState(() {
-                      _eraserMode = false;
-                      _strokeWidth = 5;
-                    }),
-                    isLandscape: isLandscape,
-                  ),
-                  SizedBox(width: 8.w),
-                  _toolCircle(
-                    icon: Icons.auto_fix_normal,
-                    selected: _eraserMode,
-                    onTap: () => setState(() {
-                      _eraserMode = true;
-                      _strokeWidth = 18;
-                    }),
-                    isLandscape: isLandscape,
-                  ),
-                  SizedBox(width: 8.w),
-                  _toolCircle(icon: Icons.undo, onTap: _undoStroke, isLandscape: isLandscape),
-                  SizedBox(width: 8.w),
-                  _toolCircle(icon: Icons.clear, onTap: _clearAll, isLandscape: isLandscape),
-                ],
+                children: entry.shades.map((Color shade) {
+                  return Padding(
+                    padding: EdgeInsets.only(right: 10.w),
+                    child: _colorDot(
+                      shade,
+                      size: dotSize,
+                      selected: !_eraserMode && _selectedColor == shade,
+                      onTap: () {
+                        setState(() {
+                          _selectedColor = shade;
+                          _eraserMode = false;
+                          _strokeWidth = 5;
+                        });
+                      },
+                    ),
+                  );
+                }).toList(),
               ),
+            ),
+          ),
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            onPressed: () => setState(() => _expandedShadeIndex = null),
+            icon: Icon(
+              Icons.close,
+              size: 18.w,
+              color: isDark ? Colors.white54 : Colors.black45,
             ),
           ),
         ],
@@ -157,17 +298,17 @@ class _DrawScreenState extends State<DrawScreen> {
     );
   }
 
-  Widget _colorDot(Color color) {
-    final bool selected = !_eraserMode && _selectedColor == color;
+  Widget _colorDot(
+    Color color, {
+    required double size,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedColor = color;
-          _eraserMode = false;
-          _strokeWidth = 5;
-        });
-      },
+      onTap: onTap,
       child: Container(
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: color,
@@ -175,6 +316,14 @@ class _DrawScreenState extends State<DrawScreen> {
             color: selected ? Colors.white : Colors.transparent,
             width: 3,
           ),
+          boxShadow: selected
+              ? <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    blurRadius: 4,
+                  ),
+                ]
+              : null,
         ),
       ),
     );
@@ -469,6 +618,13 @@ class _DrawScreenState extends State<DrawScreen> {
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
+}
+
+class _PaletteEntry {
+  const _PaletteEntry(this.color, {this.shades = const <Color>[]});
+
+  final Color color;
+  final List<Color> shades;
 }
 
 class _Stroke {

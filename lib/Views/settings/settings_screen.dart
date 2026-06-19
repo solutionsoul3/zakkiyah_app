@@ -5,6 +5,7 @@ import 'package:zakkiyah_app/Routes/routes.dart';
 import 'package:zakkiyah_app/constants/images/images.dart';
 import 'package:zakkiyah_app/controllers/home_apps_controller.dart';
 import 'package:zakkiyah_app/controllers/theme_controller.dart';
+import 'package:zakkiyah_app/widgets/app_screen_header.dart';
 import 'package:zakkiyah_app/widgets/menu_drawer_button.dart';
 import 'package:zakkiyah_app/widgets/responsive_frame.dart';
 
@@ -83,10 +84,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _containerColor => _isDark ? Colors.black : Colors.white;
+
+  Color get _textColor => _isDark ? Colors.white : Colors.black;
+
+  Color get _mutedTextColor => _isDark ? Colors.white70 : Colors.black87;
+
+  void _goHome() {
+    Get.offAllNamed(AppRoutes.home);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color pageBg = isDark ? const Color(0xFF121212) : const Color(0xFFF4F4F4);
+    final Color pageBg = _isDark ? const Color(0xFF121212) : const Color(0xFFF4F4F4);
     return Scaffold(
       endDrawer: _SettingsDrawer(),
       body: SafeArea(
@@ -135,33 +147,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _topBar() {
+    final bool isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
     return Container(
       height: 64.h,
       width: double.infinity,
       color: Colors.black,
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      padding: EdgeInsets.symmetric(horizontal: isTablet ? 12.w : 10.w, vertical: 6.h),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Text(
-            _tabTitle(_selectedTab),
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22.sp,
-              fontWeight: FontWeight.w400,
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: IconTheme(
+                  data: const IconThemeData(color: Colors.white),
+                  child: DefaultTextStyle(
+                    style: const TextStyle(color: Colors.white),
+                    child: AppHeaderTitle(
+                      fontSize: 22.sp,
+                      onHomeTap: _goHome,
+                      segments: <AppHeaderSegment>[
+                        AppHeaderSegment(
+                          label: _tabTitle(_selectedTab),
+                          icon: Icons.settings_outlined,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
-          const Spacer(),
-          const MenuDrawerButton(),
+          SizedBox(width: 6.w),
+          MenuDrawerButton(size: isTablet ? 26.0 : 24.0),
         ],
       ),
     );
   }
 
   Widget _subHeader() {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      color: isDark ? const Color(0xFF1B1B1B) : const Color(0xFFECECEC),
+      color: _isDark ? Colors.black : const Color(0xFFECECEC),
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       child: Container(
         width: 135.w,
@@ -184,11 +214,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _leftMenu() {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        color: _containerColor,
         borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: _isDark ? Colors.white24 : Colors.black12,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -211,7 +243,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _menuTile(String text, SettingsTab tab, IconData icon) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bool active = _selectedTab == tab;
     return InkWell(
       onTap: () => setState(() => _selectedTab = tab),
@@ -220,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
         decoration: BoxDecoration(
           color: active
-              ? (isDark ? const Color(0xFF5E61D8) : const Color(0xFF8B8DE8))
+              ? (_isDark ? const Color(0xFF5E61D8) : const Color(0xFF8B8DE8))
               : Colors.transparent,
           borderRadius: BorderRadius.circular(6.r),
         ),
@@ -228,14 +259,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: <Widget>[
             Icon(
               icon,
-              color: active ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
+              color: active ? Colors.white : (_isDark ? Colors.white70 : Colors.black54),
               size: 18.w,
             ),
             SizedBox(width: 8.w),
             Text(
               text,
               style: TextStyle(
-                color: active ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                color: active ? Colors.white : _textColor,
                 fontSize: 13.sp,
               ),
             ),
@@ -304,7 +335,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _displayContent() {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,12 +370,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   height: 80.h,
                   width: 120.w,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE6E6E6),
+                    color: _isDark ? const Color(0xFF1A1A1A) : const Color(0xFFE6E6E6),
                     borderRadius: BorderRadius.circular(6.r),
                   ),
                   child: Icon(
                     Icons.grid_view,
-                    color: isDark ? Colors.white70 : Colors.white54,
+                    color: _isDark ? Colors.white70 : Colors.black54,
                   ),
                 ),
               ],
@@ -374,6 +404,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _profileContent() {
+    final double avatarRadius = MediaQuery.of(context).orientation == Orientation.landscape
+        ? 40.r
+        : 48.r;
+    final double avatarSize = avatarRadius * 2;
+
     return SingleChildScrollView(
       child: _sectionCard(
         child: Column(
@@ -393,71 +428,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-            Center(
-              child: Stack(
-                children: <Widget>[
-                  CircleAvatar(
-                    radius: 48.r,
-                    backgroundColor: const Color(0xFFE8EEF8),
-                    child: ClipOval(
-                      child: Image.asset(
-                        AppImages.homeAvatar,
-                        fit: BoxFit.cover,
-                        width: 96.w,
-                        height: 96.w,
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.person,
-                          size: 40.w,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Image edit action clicked'),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                width: avatarSize + 12.w,
+                height: avatarSize + 12.h,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: <Widget>[
+                    Positioned(
+                      left: 6.w,
+                      top: 0,
+                      child: CircleAvatar(
+                        radius: avatarRadius,
+                        backgroundColor: _isDark
+                            ? const Color(0xFF2A2A2A)
+                            : const Color(0xFFE8EEF8),
+                        child: ClipOval(
+                          child: Image.asset(
+                            AppImages.homeAvatar,
+                            fit: BoxFit.cover,
+                            width: avatarSize,
+                            height: avatarSize,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.person,
+                              size: avatarRadius,
+                              color: _mutedTextColor,
+                            ),
                           ),
-                        );
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(6.w),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF66D5FD),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.edit,
-                          size: 14.w,
-                          color: Colors.white,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      left: 0,
+                      bottom: 0,
+                      child: GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Image edit action clicked'),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(6.w),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF66D5FD),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.edit,
+                            size: 14.w,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             SizedBox(height: 8.h),
-            Center(
-              child: Text(
-                _usernameController.text,
-                style: TextStyle(
-                  fontSize: 22.sp,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black87,
-                  fontWeight: FontWeight.w500,
-                ),
+            Text(
+              _usernameController.text,
+              style: TextStyle(
+                fontSize: 22.sp,
+                color: _textColor,
+                fontWeight: FontWeight.w500,
               ),
             ),
             SizedBox(height: 14.h),
             Text(
               'Username',
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
+                color: _textColor,
+              ),
             ),
             SizedBox(height: 6.h),
             _field(
@@ -467,7 +514,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SizedBox(height: 8.h),
             Text(
               'Email',
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
+                color: _textColor,
+              ),
             ),
             SizedBox(height: 6.h),
             _field(
@@ -504,12 +555,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SizedBox(height: 8.h),
           Text(
             'Configure limits, session duration, and guidance preferences.',
-            style: TextStyle(
-              fontSize: 13.sp,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black87,
-            ),
+            style: TextStyle(fontSize: 13.sp, color: _mutedTextColor),
           ),
           SizedBox(height: 14.h),
           SwitchListTile(
@@ -538,12 +584,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SizedBox(height: 8.h),
           Text(
             'Lock/Unlock apps shown on Home, then press Apply.',
-            style: TextStyle(
-              fontSize: 13.sp,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black87,
-            ),
+            style: TextStyle(fontSize: 13.sp, color: _mutedTextColor),
           ),
           SizedBox(height: 10.h),
           Obx(
@@ -598,7 +639,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text('Grid Preview', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500)),
+                    Text('Grid Preview', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: _textColor)),
                     SizedBox(height: 8.h),
                     Container(
                       height: 120.h,
@@ -620,14 +661,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     SizedBox(height: 10.h),
-                    Text('Card Preview', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500)),
+                    Text('Card Preview', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: _textColor)),
                     SizedBox(height: 8.h),
                     Container(
                       height: 130.h,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: _containerColor,
                         borderRadius: BorderRadius.circular(6.r),
-                        border: Border.all(color: const Color(0xFFD5DDE5)),
+                        border: Border.all(
+                          color: _isDark ? Colors.white24 : const Color(0xFFD5DDE5),
+                        ),
                       ),
                       child: Column(
                         children: <Widget>[
@@ -641,7 +684,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           Padding(
                             padding: EdgeInsets.all(6.w),
-                            child: const Text('I would like to go for ...'),
+                            child: Text(
+                              'I would like to go for ...',
+                              style: TextStyle(color: _textColor),
+                            ),
                           ),
                         ],
                       ),
@@ -658,15 +704,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() => _gridAlignment = value);
                     }),
                     SizedBox(height: 10.h),
-                    Text('Message Window Mode', style: TextStyle(fontSize: 13.sp)),
+                    Text('Message Window Mode', style: TextStyle(fontSize: 13.sp, color: _textColor)),
                     Slider(value: _messageWindowMode, onChanged: (double v) => setState(() => _messageWindowMode = v)),
                     SizedBox(height: 8.h),
-                    Text('Button Bar Alignment', style: TextStyle(fontSize: 13.sp)),
+                    Text('Button Bar Alignment', style: TextStyle(fontSize: 13.sp, color: _textColor)),
                     _radioRow(<String>['Left', 'Right', 'Top', 'Bottom'], _buttonBarAlignment, (String value) {
                       setState(() => _buttonBarAlignment = value);
                     }),
                     SizedBox(height: 8.h),
-                    Text('Grid Size', style: TextStyle(fontSize: 13.sp)),
+                    Text('Grid Size', style: TextStyle(fontSize: 13.sp, color: _textColor)),
                     Row(
                       children: <Widget>[
                         OutlinedButton(onPressed: () {}, child: const Text('- Less')),
@@ -675,8 +721,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           width: 34.w,
                           alignment: Alignment.center,
                           padding: EdgeInsets.symmetric(vertical: 7.h),
-                          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFD1D8E0))),
-                          child: const Text('2'),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: _isDark ? Colors.white38 : const Color(0xFFD1D8E0),
+                            ),
+                          ),
+                          child: Text('2', style: TextStyle(color: _textColor)),
                         ),
                         SizedBox(width: 8.w),
                         OutlinedButton(onPressed: () {}, child: const Text('+ More')),
@@ -901,8 +951,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: EdgeInsets.symmetric(vertical: 4.h),
       child: Row(
         children: <Widget>[
-          Expanded(flex: 2, child: Text(title)),
-          Expanded(flex: 3, child: Text(value)),
+          Expanded(
+            flex: 2,
+            child: Text(title, style: TextStyle(color: _textColor)),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(value, style: TextStyle(color: _mutedTextColor)),
+          ),
         ],
       ),
     );
@@ -913,11 +969,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       width: double.infinity,
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: const Color(0xFFEAF4FD),
+        color: _containerColor,
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: const Color(0xFFD7E4F0)),
+        border: Border.all(
+          color: _isDark ? Colors.white24 : const Color(0xFFD7E4F0),
+        ),
       ),
-      child: child,
+      child: DefaultTextStyle(
+        style: TextStyle(color: _textColor, fontSize: 14.sp),
+        child: IconTheme(
+          data: IconThemeData(color: _textColor),
+          child: child,
+        ),
+      ),
     );
   }
 
@@ -931,8 +995,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500)),
-                Text(subtitle, style: TextStyle(fontSize: 12.sp)),
+                Text(title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: _textColor)),
+                Text(subtitle, style: TextStyle(fontSize: 12.sp, color: _mutedTextColor)),
               ],
             ),
           ),
@@ -952,8 +1016,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500)),
-                Text(subtitle, style: TextStyle(fontSize: 12.sp)),
+                Text(title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: _textColor)),
+                Text(subtitle, style: TextStyle(fontSize: 12.sp, color: _mutedTextColor)),
               ],
             ),
           ),
@@ -964,26 +1028,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _sectionCard({required Widget child}) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        color: _containerColor,
         borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: _isDark ? Colors.white24 : Colors.black12,
+        ),
       ),
-      child: child,
+      child: DefaultTextStyle(
+        style: TextStyle(color: _textColor),
+        child: IconTheme(
+          data: IconThemeData(color: _textColor),
+          child: child,
+        ),
+      ),
     );
   }
 
   Widget _sectionTitle(String text) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       text,
       style: TextStyle(
         fontWeight: FontWeight.w500,
         fontSize: 18.sp,
-        color: isDark ? Colors.white : Colors.black87,
+        color: _textColor,
       ),
     );
   }
@@ -1008,7 +1079,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (v != null) onChanged(v);
                 },
               ),
-              Text(value),
+              Text(value, style: TextStyle(color: _textColor)),
             ],
           ),
         );
@@ -1017,7 +1088,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _themeButton(String name, IconData icon) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bool selected = _theme == name;
     return InkWell(
       onTap: () {
@@ -1033,17 +1103,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         decoration: BoxDecoration(
           color: selected
               ? const Color(0xFFFFC247)
-              : (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF2F2F2)),
+              : (_isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF2F2F2)),
           borderRadius: BorderRadius.circular(6.r),
+          border: Border.all(
+            color: _isDark ? Colors.white24 : Colors.black12,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(icon, size: 22.w, color: isDark ? Colors.white : Colors.black),
+            Icon(icon, size: 22.w, color: selected ? Colors.black : _textColor),
             SizedBox(width: 6.w),
             Text(
               name,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              style: TextStyle(color: selected ? Colors.black : _textColor),
             ),
           ],
         ),
@@ -1055,11 +1128,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required TextEditingController controller,
     required bool editable,
   }) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF6F6F6),
+        color: _isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF6F6F6),
         borderRadius: BorderRadius.circular(6.r),
+        border: Border.all(
+          color: _isDark ? Colors.white24 : Colors.black12,
+        ),
       ),
       child: TextField(
         controller: controller,
@@ -1074,13 +1149,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             size: 18.w,
             color: editable
                 ? const Color(0xFF66D5FD)
-                : (isDark ? Colors.white38 : Colors.black38),
+                : (_isDark ? Colors.white38 : Colors.black38),
           ),
         ),
         style: TextStyle(
           fontSize: 16.sp,
           fontWeight: FontWeight.w400,
-          color: isDark ? Colors.white : Colors.black,
+          color: _textColor,
         ),
       ),
     );
@@ -1234,7 +1309,13 @@ class HelpSettingsScreen extends StatelessWidget {
 class _SettingsDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color background = isDark ? Colors.black : Colors.white;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+    final Color iconColor = isDark ? Colors.white : Colors.black87;
+
     return Drawer(
+      backgroundColor: background,
       child: SafeArea(
         child: Scrollbar(
           thumbVisibility: true,
@@ -1243,92 +1324,158 @@ class _SettingsDrawer extends StatelessWidget {
           children: <Widget>[
             SizedBox(
               height: 64,
-              child: const Center(
+              child: Center(
                 child: Text(
                   'Settings Menu',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
                 ),
               ),
             ),
+            _drawerHomeItem(context, textColor: textColor, iconColor: iconColor),
             _drawerItem(
               context,
               icon: Icons.desktop_windows_outlined,
               title: 'Display',
               route: AppRoutes.settingsDisplay,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerItem(
               context,
               icon: Icons.person_outline,
               title: 'Profile',
               route: AppRoutes.settingsProfile,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerItem(
               context,
               icon: Icons.speed_outlined,
               title: 'Usage Control',
               route: AppRoutes.settingsUsageControl,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerItem(
               context,
               icon: Icons.apps_outlined,
               title: 'Manage Apps',
               route: AppRoutes.settingsApps,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerItem(
               context,
               icon: Icons.edit_note_outlined,
               title: 'Editor',
               route: AppRoutes.editor,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerSettingsItem(
               context,
               icon: Icons.grid_view_outlined,
               title: 'Layout',
               route: AppRoutes.settingsLayout,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerSettingsItem(
               context,
               icon: Icons.view_carousel_outlined,
               title: 'Card Behavior',
               route: AppRoutes.settingsCardBehavior,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerSettingsItem(
               context,
               icon: Icons.volume_up_outlined,
               title: 'Sound',
               route: AppRoutes.settingsSound,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerSettingsItem(
               context,
               icon: Icons.record_voice_over_outlined,
               title: 'Language And Voice',
               route: AppRoutes.settingsLanguageVoice,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerSettingsItem(
               context,
               icon: Icons.settings_input_component_outlined,
               title: 'Accessories',
               route: AppRoutes.settingsAccessories,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerSettingsItem(
               context,
               icon: Icons.devices_other_outlined,
               title: 'Device',
               route: AppRoutes.settingsDevice,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerSettingsItem(
               context,
               icon: Icons.privacy_tip_outlined,
               title: 'Account and Privacy',
               route: AppRoutes.settingsAccountPrivacy,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
             _drawerSettingsItem(
               context,
               icon: Icons.help_outline,
               title: 'Help',
               route: AppRoutes.settingsHelp,
+              textColor: textColor,
+              iconColor: iconColor,
             ),
           ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _drawerHomeItem(
+    BuildContext context, {
+    required Color textColor,
+    required Color iconColor,
+  }) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        Get.offAllNamed(AppRoutes.home);
+      },
+      child: SizedBox(
+        height: 40,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            children: <Widget>[
+              Icon(Icons.home_outlined, size: 18, color: iconColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Home',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1340,6 +1487,8 @@ class _SettingsDrawer extends StatelessWidget {
     required IconData icon,
     required String title,
     required String route,
+    required Color textColor,
+    required Color iconColor,
   }) {
     return InkWell(
       onTap: () {
@@ -1352,9 +1501,9 @@ class _SettingsDrawer extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Row(
             children: <Widget>[
-              Icon(icon, size: 16),
+              Icon(icon, size: 16, color: iconColor),
               const SizedBox(width: 8),
-              Expanded(child: Text(title, style: const TextStyle(fontSize: 12))),
+              Expanded(child: Text(title, style: TextStyle(fontSize: 12, color: textColor))),
             ],
           ),
         ),
@@ -1367,6 +1516,8 @@ class _SettingsDrawer extends StatelessWidget {
     required IconData icon,
     required String title,
     required String route,
+    required Color textColor,
+    required Color iconColor,
   }) {
     return InkWell(
       onTap: () {
@@ -1379,9 +1530,9 @@ class _SettingsDrawer extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Row(
             children: <Widget>[
-              Icon(icon, size: 16),
+              Icon(icon, size: 16, color: iconColor),
               const SizedBox(width: 8),
-              Expanded(child: Text(title, style: const TextStyle(fontSize: 12))),
+              Expanded(child: Text(title, style: TextStyle(fontSize: 12, color: textColor))),
             ],
           ),
         ),
