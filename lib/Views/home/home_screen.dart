@@ -46,14 +46,15 @@ class _HomeScreenState extends State<HomeScreen> {
   final PageController _pageController = PageController();
   final HomeAppsController _homeAppsController = Get.find<HomeAppsController>();
   int _currentPage = 0;
-  static const int _crossAxisCount = kTileCrossAxisCount;
   static const String _greetingMessage = 'Good morning Zakkiyah';
+  static bool _hasSpokenGreetingThisSession = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted || _hasSpokenGreetingThisSession) return;
+      _hasSpokenGreetingThisSession = true;
       VoiceService.instance.speak(_greetingMessage);
     });
   }
@@ -65,18 +66,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   double _getChildAspectRatio({
+    required BuildContext context,
     required double maxWidth,
     required double maxHeight,
     required int crossAxisCount,
     required int itemCount,
   }) {
+    final double spacing = responsiveTileSpacing(context);
     return gridChildAspectRatioForFit(
       maxWidth: maxWidth,
       maxHeight: maxHeight,
       crossAxisCount: crossAxisCount,
       itemCount: itemCount,
-      mainAxisSpacing: 15.h,
-      crossAxisSpacing: 15.w,
+      mainAxisSpacing: spacing,
+      crossAxisSpacing: spacing,
     );
   }
   final List<_HomeTileData> _allTiles = <_HomeTileData>[
@@ -171,7 +174,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
 
                   return Padding(
-                    padding: EdgeInsets.all(10.w),
+                    padding: EdgeInsets.all(
+                      isTabletLayout(context) ? 8.0 : 10.w,
+                    ),
                     child: PageView.builder(
                       controller: _pageController,
                       itemCount: pages.length,
@@ -180,15 +185,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         final List<_HomeTileData> pageItems = pages[pageIndex];
                         return LayoutBuilder(
                           builder: (BuildContext context, BoxConstraints constraints) {
-                            const int crossAxisCount = _crossAxisCount;
+                            const int crossAxisCount = kTileCrossAxisCount;
+                            final double spacing = responsiveTileSpacing(context);
                             return GridView.builder(
                               itemCount: pageItems.length,
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: crossAxisCount,
-                                mainAxisSpacing: 15.h,
-                                crossAxisSpacing: 15.w,
+                                mainAxisSpacing: spacing,
+                                crossAxisSpacing: spacing,
                                 childAspectRatio: _getChildAspectRatio(
+                                  context: context,
                                   maxWidth: constraints.maxWidth,
                                   maxHeight: constraints.maxHeight,
                                   crossAxisCount: crossAxisCount,
@@ -322,9 +329,6 @@ class _HomeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final MediaQueryData media = MediaQuery.of(context);
-    final bool isLandscape = media.orientation == Orientation.landscape;
-    final bool isTablet = media.size.shortestSide >= 600;
     final Color lightTileBackground = Color.lerp(data.labelColor, Colors.white, 0.82)!;
 
     return LayoutBuilder(
@@ -333,11 +337,14 @@ class _HomeTile extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final double tileHeight = constraints.maxHeight;
-        final double labelHeight = isTablet
-            ? (isLandscape ? tileHeight * 0.2 : tileHeight * 0.22).clamp(28.h, 44.h)
-            : (isLandscape ? 28.h : 34.h);
-        final double imagePadding = isTablet ? (isLandscape ? 4.w : 6.w) : 8.w;
+        final double tileShort = constraints.maxHeight < constraints.maxWidth
+            ? constraints.maxHeight
+            : constraints.maxWidth;
+        final bool isTablet = isTabletLayout(context);
+        final bool isLandscape = isLandscapeLayout(context);
+        final double imagePadding = (tileShort * 0.06).clamp(4.0, 10.0);
+        final double labelFontSize = (tileShort * 0.09).clamp(11.0, isTablet ? 18.0 : 16.0);
+        final int labelMaxLines = data.label.length > 14 ? 2 : 1;
 
         return VoiceTap(
           announceText: announceText,
@@ -352,6 +359,7 @@ class _HomeTile extends StatelessWidget {
             child: Column(
               children: <Widget>[
                 Expanded(
+                  flex: isLandscape && isTablet ? 7 : 6,
                   child: Padding(
                     padding: EdgeInsets.all(imagePadding),
                     child: Image.asset(
@@ -361,34 +369,40 @@ class _HomeTile extends StatelessWidget {
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => Icon(
                         Icons.image_outlined,
-                        size: (isTablet ? 28 : 24).w,
+                        size: (tileShort * 0.28).clamp(20.0, 36.0),
                         color: Colors.blueGrey,
                       ),
                     ),
                   ),
                 ),
-                Container(
-                  width: double.infinity,
-                  height: labelHeight,
-                  padding: EdgeInsets.symmetric(horizontal: 4.w),
-                  decoration: BoxDecoration(
-                    color: data.labelColor,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(8.r),
-                      bottomRight: Radius.circular(8.r),
+                Expanded(
+                  flex: isLandscape && isTablet ? 3 : 2,
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: isLandscape ? 2 : 4,
                     ),
-                  ),
-                  alignment: Alignment.center,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      data.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: (isTablet ? (isLandscape ? 16 : 15) : (isLandscape ? 14 : 18)).sp,
+                    decoration: BoxDecoration(
+                      color: data.labelColor,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(8.r),
+                        bottomRight: Radius.circular(8.r),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        data.label,
+                        maxLines: labelMaxLines,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: labelFontSize,
+                          height: 1.1,
+                        ),
                       ),
                     ),
                   ),

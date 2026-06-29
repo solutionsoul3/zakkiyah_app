@@ -192,11 +192,18 @@ class AppScreenHeader extends StatelessWidget {
     final bool isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
     final bool isLandscape = MediaQuery.sizeOf(context).width >
         MediaQuery.sizeOf(context).height;
-    final double barHeight = (isLandscape ? topBarHeight - 4 : topBarHeight).h;
+    final double barHeight = isTablet
+        ? (isLandscape ? 52.0 : 58.0)
+        : (isLandscape ? (topBarHeight - 4).h : topBarHeight.h);
     final EdgeInsetsGeometry resolvedTopPadding = topBarPadding ??
-        EdgeInsets.symmetric(horizontal: isTablet ? 12.w : 10.w, vertical: 6.h);
+        EdgeInsets.symmetric(
+          horizontal: isTablet ? 12.0 : 10.w,
+          vertical: isTablet ? 4.0 : 6.h,
+        );
     final double menuSize = isTablet ? 26.0 : 24.0;
-    final double greetingHeight = (isLandscape ? 56 : 62).h;
+    final double greetingHeight = isTablet
+        ? (isLandscape ? 50.0 : 58.0)
+        : (isLandscape ? 56.h : 62.h);
 
     return Column(
       children: <Widget>[

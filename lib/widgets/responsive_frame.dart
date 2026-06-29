@@ -28,9 +28,18 @@ class ResponsiveFrame extends StatelessWidget {
 /// Always 2 columns for tile grids (portrait, landscape, phone, tablet).
 const int kTileCrossAxisCount = 2;
 
+bool isTabletLayout(BuildContext context) =>
+    MediaQuery.sizeOf(context).shortestSide >= 600;
+
+bool isLandscapeLayout(BuildContext context) =>
+    MediaQuery.orientationOf(context) == Orientation.landscape;
+
 int responsiveCrossAxisCount(BuildContext context, {double? width}) {
   return kTileCrossAxisCount;
 }
+
+double responsiveTileSpacing(BuildContext context) =>
+    isTabletLayout(context) ? 12.0 : 15.0;
 
 /// Aspect ratio so [itemCount] tiles fill the grid area without scrolling.
 double gridChildAspectRatioForFit({
