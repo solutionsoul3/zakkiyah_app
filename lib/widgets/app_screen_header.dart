@@ -69,7 +69,12 @@ class AppHeaderTitle extends StatelessWidget {
   double _resolveTextSize(BuildContext context) {
     if (fontSize != null) return fontSize!;
     final bool isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
-    if (isTablet) return 20.sp;
+    final bool isLandscape =
+        MediaQuery.sizeOf(context).width > MediaQuery.sizeOf(context).height;
+    // Fixed sizes for tablets to prevent overflow on rotation
+    if (isTablet && isLandscape) return 16.0;
+    if (isTablet) return 18.0;
+    // Phone sizes remain responsive
     return segments.length > 1 ? 17.sp : 19.sp;
   }
 
@@ -79,9 +84,12 @@ class AppHeaderTitle extends StatelessWidget {
     final bool showBack = showBackButton && canPop;
     final bool homeTappable = onHomeTap != null || (canPop && showBackButton);
     final bool isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final bool isLandscape =
+        MediaQuery.sizeOf(context).width > MediaQuery.sizeOf(context).height;
     final double textSize = _resolveTextSize(context);
-    final double gap = isTablet ? 10.w : 8.w;
-    final double iconGap = isTablet ? 6.w : 5.w;
+    // Fixed spacing for tablets to ensure consistent layout
+    final double gap = isTablet ? (isLandscape ? 6.0 : 8.0) : 8.w;
+    final double iconGap = isTablet ? (isLandscape ? 4.0 : 5.0) : 5.w;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -92,35 +100,44 @@ class AppHeaderTitle extends StatelessWidget {
             onTap: () => _goHome(context),
             announceText: 'Back',
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 2.h),
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 3.0 : 2.w,
+                vertical: isTablet ? 3.0 : 2.h,
+              ),
               child: Icon(Icons.arrow_back_ios_new, size: textSize * 0.85),
             ),
           ),
-          SizedBox(width: 2.w),
+          SizedBox(width: isTablet ? 3.0 : 2.w),
         ],
-        _headerTap(
-          context: context,
-          onTap: homeTappable ? () => _goHome(context) : null,
-          announceText: 'Home',
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 2.h),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(Icons.home, size: textSize * 0.95),
-                SizedBox(width: iconGap),
-                Text(
-                  'Home',
-                  maxLines: 1,
-                  style: TextStyle(fontSize: textSize, height: 1.1),
-                ),
-              ],
+        Flexible(
+          child: _headerTap(
+            context: context,
+            onTap: homeTappable ? () => _goHome(context) : null,
+            announceText: 'Home',
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 3.0 : 2.w,
+                vertical: isTablet ? 3.0 : 2.h,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(Icons.home, size: textSize * 0.95),
+                  SizedBox(width: iconGap),
+                  Text(
+                    'Home',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: textSize, height: 1.1),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
         for (final AppHeaderSegment segment in segments) ...<Widget>[
           SizedBox(width: gap),
-          _segment(segment, textSize, iconGap),
+          Flexible(child: _segment(segment, textSize, iconGap)),
         ],
       ],
     );
@@ -163,10 +180,13 @@ class AppHeaderTitle extends StatelessWidget {
         else
           Icon(segment.icon ?? Icons.label_outline, size: textSize * 0.95),
         SizedBox(width: iconGap),
-        Text(
-          segment.label,
-          maxLines: 1,
-          style: TextStyle(fontSize: textSize, height: 1.1),
+        Flexible(
+          child: Text(
+            segment.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: textSize, height: 1.1),
+          ),
         ),
       ],
     );
@@ -192,17 +212,24 @@ class AppScreenHeader extends StatelessWidget {
     final bool isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
     final bool isLandscape = MediaQuery.sizeOf(context).width >
         MediaQuery.sizeOf(context).height;
+
+    // Top (black) bar height — fixed values for tablets
     final double barHeight = isTablet
         ? (isLandscape ? 52.0 : 58.0)
         : (isLandscape ? (topBarHeight - 4).h : topBarHeight.h);
+
     final EdgeInsetsGeometry resolvedTopPadding = topBarPadding ??
         EdgeInsets.symmetric(
-          horizontal: isTablet ? 12.0 : 10.w,
-          vertical: isTablet ? 4.0 : 6.h,
+          horizontal: isTablet ? 16.0 : 10.w,
+          vertical: isTablet ? 6.0 : 6.h,
         );
-    final double menuSize = isTablet ? 26.0 : 24.0;
+
+    // Menu icon size for touch targets
+    final double menuSize = isTablet ? (isLandscape ? 26.0 : 28.0) : 24.0;
+
+    // Greeting (cyan) bar height — fixed for tablets
     final double greetingHeight = isTablet
-        ? (isLandscape ? 50.0 : 58.0)
+        ? (isLandscape ? 52.0 : 58.0)
         : (isLandscape ? 56.h : 62.h);
 
     return Column(
@@ -230,7 +257,7 @@ class AppScreenHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: 6.w),
+              SizedBox(width: isTablet ? 8.0 : 6.w),
               MenuDrawerButton(size: menuSize),
             ],
           ),
@@ -242,14 +269,14 @@ class AppScreenHeader extends StatelessWidget {
             color: Color(0xFF63CCF8),
           ),
           padding: EdgeInsets.symmetric(
-            horizontal: isTablet ? 12.w : 10.w,
-            vertical: 8.h,
+            horizontal: isTablet ? 14.0 : 10.w,
+            vertical: isTablet ? 6.0 : 8.h,
           ),
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               final double contentHeight = constraints.maxHeight;
-              final double avatarSize = contentHeight.clamp(34.0, 46.0);
-              final double iconSize = (avatarSize * 0.48).clamp(18.0, 24.0);
+              final double avatarSize = contentHeight.clamp(36.0, 48.0);
+              final double iconSize = (avatarSize * 0.5).clamp(18.0, 24.0);
 
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -275,7 +302,7 @@ class AppScreenHeader extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: isTablet ? 10.0 : 8.w),
                   Expanded(
                     child: Align(
                       alignment: Alignment.centerLeft,
@@ -285,9 +312,14 @@ class AppScreenHeader extends StatelessWidget {
                         child: Text(
                           greetingText,
                           maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: isTablet ? 18.sp : 16.sp,
+                            // Fixed text size for tablets
+                            fontSize: isTablet 
+                                ? (isLandscape ? 16.0 : 18.0)
+                                : 16.sp,
                             color: Colors.black,
+                            fontWeight: FontWeight.w500,
                             height: 1.0,
                           ),
                         ),

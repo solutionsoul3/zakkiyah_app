@@ -17,10 +17,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(390, 844),
+      designSize: const Size(800, 1280), // Tablet-optimized base size
       minTextAdapt: true,
       splitScreenMode: true,
-      useInheritedMediaQuery: true, // ✅ rotation fix
+      useInheritedMediaQuery: true,
       builder: (_, __) {
         final ThemeController themeController = Get.find<ThemeController>();
 
@@ -124,12 +124,24 @@ class ResponsiveWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MediaQueryData media = MediaQuery.of(context);
+    final bool isTablet = media.size.shortestSide >= 600;
     final bool isLandscape = media.orientation == Orientation.landscape;
 
-    if (!isLandscape) return child;
+    // Optimized text scaling for tablets to prevent overflow and ensure readability
+    // Tablet landscape: 0.95 — slightly reduced for wider layout
+    // Tablet portrait: 1.0 — full size, as tablet portrait has enough vertical space
+    // Phone landscape: 0.85 — reduced for compact horizontal space
+    // Phone portrait: 1.0 — standard size
+    double textScale = 1.0;
+    if (isTablet && isLandscape) {
+      textScale = 0.95;
+    } else if (isTablet) {
+      textScale = 1.0;
+    } else if (isLandscape) {
+      textScale = 0.85;
+    }
 
-    final bool isTablet = media.size.shortestSide >= 600;
-    final double textScale = isTablet ? 0.82 : 0.78;
+    if (textScale == 1.0) return child;
 
     return MediaQuery(
       data: media.copyWith(textScaler: TextScaler.linear(textScale)),

@@ -155,10 +155,11 @@ class _HomeScreenState extends State<HomeScreen> {
             children: <Widget>[
               AppScreenHeader(
                 topBarHeight: 64,
-                topBarPadding: EdgeInsets.symmetric(horizontal: 12.w),
+                topBarPadding: EdgeInsets.symmetric(
+                  horizontal: isTabletLayout(context) ? 16.0 : 12.w,
+                ),
                 greetingText: _greetingMessage,
-                titleContent: AppHeaderTitle(
-                  fontSize: 24.sp,
+                titleContent: const AppHeaderTitle(
                   showBackButton: false,
                 ),
               ),
@@ -173,34 +174,59 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                   }
 
-                  return Padding(
-                    padding: EdgeInsets.all(
-                      isTabletLayout(context) ? 8.0 : 10.w,
-                    ),
-                    child: PageView.builder(
-                      controller: _pageController,
-                      itemCount: pages.length,
-                      onPageChanged: (int index) => setState(() => _currentPage = index),
-                      itemBuilder: (_, int pageIndex) {
-                        final List<_HomeTileData> pageItems = pages[pageIndex];
-                        return LayoutBuilder(
-                          builder: (BuildContext context, BoxConstraints constraints) {
-                            const int crossAxisCount = kTileCrossAxisCount;
-                            final double spacing = responsiveTileSpacing(context);
+                  return LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints outerConstraints) {
+                      final bool isTablet = isTabletLayout(context);
+                      final bool isLandscape = isLandscapeLayout(context);
+                      
+                      // Padding values
+                      final double horizontalPadding = isTablet 
+                          ? (isLandscape ? 16.0 : 14.0)
+                          : 10.w;
+                      final double verticalPadding = isTablet
+                          ? (isLandscape ? 12.0 : 14.0)
+                          : 10.h;
+                      
+                      // Calculate available space after padding
+                      final double availableWidth = outerConstraints.maxWidth - (horizontalPadding * 2);
+                      final double availableHeight = outerConstraints.maxHeight - (verticalPadding * 2);
+                      
+                      const int crossAxisCount = kTileCrossAxisCount; // 2 columns
+                      const int targetRows = 4; // 4 rows for 8 tiles
+                      final double spacing = responsiveTileSpacing(context);
+                      
+                      // Calculate dimensions for exactly 4 rows
+                      final double totalVerticalSpacing = (targetRows - 1) * spacing;
+                      final double totalHorizontalSpacing = (crossAxisCount - 1) * spacing;
+                      
+                      final double cellHeight = (availableHeight - totalVerticalSpacing) / targetRows;
+                      final double cellWidth = (availableWidth - totalHorizontalSpacing) / crossAxisCount;
+                      
+                      // Calculate aspect ratio WITHOUT clamping - let it be what it needs to be
+                      final double aspectRatio = cellWidth / cellHeight;
+                      
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                          vertical: verticalPadding,
+                        ),
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: pages.length,
+                          onPageChanged: (int index) => setState(() => _currentPage = index),
+                          itemBuilder: (_, int pageIndex) {
+                            final List<_HomeTileData> pageItems = pages[pageIndex];
+                            
                             return GridView.builder(
                               itemCount: pageItems.length,
                               physics: const NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: crossAxisCount,
                                 mainAxisSpacing: spacing,
                                 crossAxisSpacing: spacing,
-                                childAspectRatio: _getChildAspectRatio(
-                                  context: context,
-                                  maxWidth: constraints.maxWidth,
-                                  maxHeight: constraints.maxHeight,
-                                  crossAxisCount: crossAxisCount,
-                                  itemCount: pageItems.length,
-                                ),
+                                childAspectRatio: aspectRatio,
                               ),
                               itemBuilder: (_, int index) {
                                 final _HomeTileData tile = pageItems[index];
@@ -214,14 +240,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             );
                           },
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   );
                 }),
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 8.h),
+                padding: EdgeInsets.fromLTRB(
+                  isTabletLayout(context) ? 14.0 : 12.w,
+                  0,
+                  isTabletLayout(context) ? 14.0 : 12.w,
+                  isTabletLayout(context) ? 10.0 : 8.h,
+                ),
                 child: Row(
                   children: <Widget>[
                     _ArrowButton(
@@ -236,9 +267,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         final bool active = _currentPage == index;
                         final bool isTablet =
                             MediaQuery.sizeOf(context).shortestSide >= 600;
-                        final double dotSize = isTablet ? 11.0 : 10.0;
+                        final bool isLandscape =
+                            MediaQuery.sizeOf(context).width > MediaQuery.sizeOf(context).height;
+                        final double dotSize = isTablet
+                            ? (isLandscape ? 10.0 : 11.0)
+                            : 10.0;
                         return Container(
-                          margin: EdgeInsets.symmetric(horizontal: 3.w),
+                          margin: EdgeInsets.symmetric(
+                            horizontal: isTablet ? 4.0 : 3.w,
+                          ),
                           width: dotSize,
                           height: dotSize,
                           decoration: BoxDecoration(
@@ -342,8 +379,8 @@ class _HomeTile extends StatelessWidget {
             : constraints.maxWidth;
         final bool isTablet = isTabletLayout(context);
         final bool isLandscape = isLandscapeLayout(context);
-        final double imagePadding = (tileShort * 0.06).clamp(4.0, 10.0);
-        final double labelFontSize = (tileShort * 0.09).clamp(11.0, isTablet ? 18.0 : 16.0);
+        final double imagePadding = (tileShort * 0.06).clamp(5.0, 12.0);
+        final double labelFontSize = (tileShort * 0.09).clamp(12.0, isTablet ? 16.0 : 15.0);
         final int labelMaxLines = data.label.length > 14 ? 2 : 1;
 
         return VoiceTap(
@@ -369,7 +406,7 @@ class _HomeTile extends StatelessWidget {
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => Icon(
                         Icons.image_outlined,
-                        size: (tileShort * 0.28).clamp(20.0, 36.0),
+                        size: (tileShort * 0.28).clamp(22.0, 38.0),
                         color: Colors.blueGrey,
                       ),
                     ),
@@ -380,8 +417,8 @@ class _HomeTile extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: isLandscape ? 2 : 4,
+                      horizontal: isTablet ? 6.0 : 4.0,
+                      vertical: isLandscape ? (isTablet ? 3.0 : 2.0) : 4.0,
                     ),
                     decoration: BoxDecoration(
                       color: data.labelColor,
@@ -401,6 +438,7 @@ class _HomeTile extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.black87,
                           fontSize: labelFontSize,
+                          fontWeight: FontWeight.w500,
                           height: 1.1,
                         ),
                       ),

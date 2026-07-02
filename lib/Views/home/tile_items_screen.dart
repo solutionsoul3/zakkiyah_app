@@ -65,7 +65,9 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
             children: <Widget>[
               AppScreenHeader(
                 topBarHeight: 56,
-                topBarPadding: EdgeInsets.symmetric(horizontal: 8.w),
+                topBarPadding: EdgeInsets.symmetric(
+                  horizontal: isTabletLayout(context) ? 14.0 : 8.w,
+                ),
                 titleContent: AppHeaderTitle.breadcrumbs(
                   titles: widget.breadcrumbTitles ?? <String>['Home', widget.title],
                   assetForTitle: _breadcrumbAssetForTitle,
@@ -73,40 +75,48 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
               ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.all(10.w),
+                  padding: responsivePadding(context),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       _leftActionRail(),
-                      SizedBox(width: 10.w),
+                      SizedBox(width: isTabletLayout(context) ? 12.0 : 10.w),
                       Expanded(
-                        child: PageView.builder(
-                          controller: _pageController,
-                          itemCount: _pageItems.length,
-                          onPageChanged: (int index) {
-                            setState(() => _currentPage = index);
-                          },
-                          itemBuilder: (_, int pageIndex) {
-                            final List<TileItemData> items = _pageItems[pageIndex];
-                            return LayoutBuilder(
-                              builder: (BuildContext context, BoxConstraints constraints) {
-                                final int crossAxisCount =
-                                    responsiveCrossAxisCount(context, width: constraints.maxWidth);
+                        child: LayoutBuilder(
+                          builder: (BuildContext context, BoxConstraints constraints) {
+                            final int crossAxisCount =
+                                responsiveCrossAxisCount(context, width: constraints.maxWidth);
+                            final double spacing = responsiveTileSpacing(context);
+                            
+                            // Calculate aspect ratio to fit exactly 4 rows in available height
+                            const int targetRows = 4;
+                            final double availableWidth = constraints.maxWidth;
+                            final double availableHeight = constraints.maxHeight;
+                            
+                            final double totalHorizontalSpacing = spacing * (crossAxisCount - 1);
+                            final double totalVerticalSpacing = spacing * (targetRows - 1);
+                            
+                            final double cellHeight = (availableHeight - totalVerticalSpacing) / targetRows;
+                            final double cellWidth = (availableWidth - totalHorizontalSpacing) / crossAxisCount;
+                            final double aspectRatio = cellWidth / cellHeight;
+                            
+                            return PageView.builder(
+                              controller: _pageController,
+                              itemCount: _pageItems.length,
+                              onPageChanged: (int index) {
+                                setState(() => _currentPage = index);
+                              },
+                              itemBuilder: (_, int pageIndex) {
+                                final List<TileItemData> items = _pageItems[pageIndex];
                                 return GridView.builder(
                                   itemCount: items.length,
+                                  shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
                                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: crossAxisCount,
-                                    crossAxisSpacing: 10.w,
-                                    mainAxisSpacing: 10.h,
-                                    childAspectRatio: gridChildAspectRatioForFit(
-                                      maxWidth: constraints.maxWidth,
-                                      maxHeight: constraints.maxHeight,
-                                      crossAxisCount: crossAxisCount,
-                                      itemCount: items.length,
-                                      mainAxisSpacing: 10.h,
-                                      crossAxisSpacing: 10.w,
-                                    ),
+                                    crossAxisSpacing: spacing,
+                                    mainAxisSpacing: spacing,
+                                    childAspectRatio: aspectRatio,
                                   ),
                                   itemBuilder: (_, int index) {
                                     final int actualIndex = (pageIndex * _tilesPerPage) + index;
@@ -133,15 +143,16 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isMediaScreen = widget.title.toLowerCase() == 'media';
     final bool canModifyItem = _isEditing && item.isCustom;
+    final bool isTablet = isTabletLayout(context);
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double tileShort = constraints.maxHeight < constraints.maxWidth
             ? constraints.maxHeight
             : constraints.maxWidth;
-        final double actionSize = (tileShort * 0.17).clamp(24.0, 34.0);
-        final double imageSize = (tileShort * 0.42).clamp(52.0, 120.0);
-        final double labelFontSize = (tileShort * 0.085).clamp(11.0, 16.0);
+        final double actionSize = (tileShort * 0.17).clamp(26.0, 36.0);
+        final double imageSize = (tileShort * 0.42).clamp(56.0, 120.0);
+        final double labelFontSize = (tileShort * 0.085).clamp(12.0, 16.0);
 
         return Stack(
           clipBehavior: Clip.none,
@@ -160,10 +171,10 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
                     Expanded(
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(
-                          8.w,
-                          canModifyItem ? actionSize * 0.45 : 10.h,
-                          8.w,
-                          4.h,
+                          isTablet ? 10.0 : 8.w,
+                          canModifyItem ? actionSize * 0.45 : (isTablet ? 12.0 : 10.h),
+                          isTablet ? 10.0 : 8.w,
+                          isTablet ? 6.0 : 4.h,
                         ),
                         child: isMediaScreen
                             ? _buildMediaPreview(item.title, imageSize: imageSize)
@@ -184,7 +195,10 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
                     ),
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 4.w),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isTablet ? 8.0 : 6.h,
+                        horizontal: isTablet ? 6.0 : 4.w,
+                      ),
                       decoration: BoxDecoration(
                         color: isMediaScreen
                             ? _mediaLabelBackground(item.title)
@@ -452,11 +466,13 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
   }
 
   Widget _leftActionRail() {
-    final bool isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isTablet = isTabletLayout(context);
+    final bool isLandscape = isLandscapeLayout(context);
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final double railW = railWidth(context);
+    
     return Container(
-      width: (isLandscape ? 78 : 92).w,
+      width: railW,
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFE3E3E3),
         borderRadius: BorderRadius.circular(14.r),
@@ -464,42 +480,42 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
       child: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            SizedBox(height: 8.h),
+            SizedBox(height: isTablet ? 10.0 : 8.h),
             _railIcon(
               icon: Icons.arrow_back,
               label: 'Back',
               announceText: 'Back',
               onTap: () => Navigator.pop(context),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: isTablet ? 10.0 : 8.h),
             _railIcon(
               icon: Icons.add_box_outlined,
               label: 'Add',
               announceText: 'Add item',
               onTap: _isEditing ? _addNew : () {},
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: isTablet ? 10.0 : 8.h),
             _railIcon(
               icon: _isEditing ? Icons.check_circle_outline : Icons.edit_note_outlined,
               label: _isEditing ? 'Done' : 'Edit',
               announceText: _isEditing ? 'Done editing' : 'Edit mode',
               onTap: _toggleEditMode,
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: isTablet ? 18.0 : 20.h),
             _railIcon(
               icon: Icons.undo,
               label: 'Undo',
               announceText: 'Undo',
               onTap: _isEditing && _undoStack.isNotEmpty ? _undo : () {},
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: isTablet ? 18.0 : 20.h),
             _railIcon(
               icon: Icons.redo,
               label: 'Redo',
               announceText: 'Redo',
               onTap: _isEditing && _redoStack.isNotEmpty ? _redo : () {},
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: isTablet ? 14.0 : 12.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -512,19 +528,19 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
                   ),
                   child: Icon(
                     Icons.chevron_left,
-                    size: (isLandscape ? 16 : 20).w,
+                    size: isTablet ? (isLandscape ? 18.0 : 20.0) : 20.w,
                     color: _currentPage > 0 ? Colors.black54 : Colors.black26,
                   ),
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: isTablet ? 6.0 : 6.w),
                 Text(
                   '${_currentPage + 1}/${_pageItems.length}',
                   style: TextStyle(
-                    fontSize: (isLandscape ? 12 : 14).sp,
+                    fontSize: isTablet ? (isLandscape ? 12.0 : 13.0) : 14.sp,
                     color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: isTablet ? 6.0 : 6.w),
                 VoiceTap(
                   announceText: 'Next page',
                   enabled: _currentPage < _pageItems.length - 1,
@@ -534,7 +550,7 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
                   ),
                   child: Icon(
                     Icons.chevron_right,
-                    size: (isLandscape ? 16 : 20).w,
+                    size: isTablet ? (isLandscape ? 18.0 : 20.0) : 20.w,
                     color: _currentPage < _pageItems.length - 1
                         ? Colors.black54
                         : Colors.black26,
@@ -542,7 +558,7 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: isTablet ? 10.0 : 8.h),
           ],
         ),
       ),
@@ -555,28 +571,32 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
     required String announceText,
     required VoidCallback onTap,
   }) {
-    final bool isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isTablet = isTabletLayout(context);
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final double containerW = railIconContainerW(context);
+    final double iconS = railIconSize(context);
+    final double labelS = railLabelSp(context);
+    final double vPadding = railVerticalPadding(context);
+    
     return VoiceTap(
       announceText: announceText,
       onTap: () async => onTap(),
       borderRadius: BorderRadius.circular(8.r),
       child: Container(
-        width: (isLandscape ? 54 : 64).w,
-        padding: EdgeInsets.symmetric(vertical: (isLandscape ? 6 : 8).h),
+        width: containerW,
+        padding: EdgeInsets.symmetric(vertical: vPadding),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF2F2F2),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Column(
           children: <Widget>[
-            Icon(icon, size: (isLandscape ? 18 : 22).w, color: isDark ? Colors.white70 : Colors.black54),
-            SizedBox(height: 2.h),
+            Icon(icon, size: iconS, color: isDark ? Colors.white70 : Colors.black54),
+            SizedBox(height: isTablet ? 3.0 : 2.h),
             Text(
               label,
               style: TextStyle(
-                fontSize: (isLandscape ? 9 : 10).sp,
+                fontSize: labelS,
                 color: isDark ? Colors.white : Colors.black,
               ),
             ),

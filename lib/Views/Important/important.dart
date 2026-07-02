@@ -281,21 +281,32 @@ class _ImportantScreenState extends State<ImportantScreen> {
                           builder: (BuildContext context, BoxConstraints constraints) {
                             final int crossAxisCount =
                                 responsiveCrossAxisCount(context, width: constraints.maxWidth);
+                            final bool isTablet = isTabletLayout(context);
+                            final double spacing = isTablet ? 14.0 : 14.w;
+                            
+                            // Calculate to fit all 12 categories in 6 rows (2x6 grid)
+                            final int itemCount = _categories.length;
+                            final int targetRows = (itemCount / crossAxisCount).ceil();
+                            
+                            final double availableWidth = constraints.maxWidth;
+                            final double availableHeight = constraints.maxHeight;
+                            
+                            final double totalHorizontalSpacing = spacing * (crossAxisCount - 1);
+                            final double totalVerticalSpacing = spacing * (targetRows - 1);
+                            
+                            final double cellHeight = (availableHeight - totalVerticalSpacing) / targetRows;
+                            final double cellWidth = (availableWidth - totalHorizontalSpacing) / crossAxisCount;
+                            final double aspectRatio = cellWidth / cellHeight;
+                            
                             return GridView.builder(
-                              itemCount: _categories.length,
+                              itemCount: itemCount,
+                              shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: crossAxisCount,
-                                crossAxisSpacing: 14.w,
-                                mainAxisSpacing: 14.h,
-                                childAspectRatio: gridChildAspectRatioForFit(
-                                  maxWidth: constraints.maxWidth,
-                                  maxHeight: constraints.maxHeight,
-                                  crossAxisCount: crossAxisCount,
-                                  itemCount: _categories.length,
-                                  mainAxisSpacing: 14.h,
-                                  crossAxisSpacing: 14.w,
-                                ),
+                                crossAxisSpacing: spacing,
+                                mainAxisSpacing: spacing,
+                                childAspectRatio: aspectRatio,
                               ),
                               itemBuilder: (_, int index) {
                                 final _ImportantCategoryData category = _categories[index];

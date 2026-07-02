@@ -226,21 +226,32 @@ class _MediaScreenState extends State<MediaScreen> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         const int crossAxisCount = kTileCrossAxisCount;
+        final bool isTablet = isTabletLayout(context);
+        final double spacing = isTablet ? 14.0 : 14.w;
+        
+        // Calculate to fit all tiles in one screen without scrolling
+        final int itemCount = tiles.length;
+        final int targetRows = (itemCount / crossAxisCount).ceil();
+        
+        final double availableWidth = constraints.maxWidth;
+        final double availableHeight = constraints.maxHeight;
+        
+        final double totalHorizontalSpacing = spacing * (crossAxisCount - 1);
+        final double totalVerticalSpacing = spacing * (targetRows - 1);
+        
+        final double cellHeight = (availableHeight - totalVerticalSpacing) / targetRows;
+        final double cellWidth = (availableWidth - totalHorizontalSpacing) / crossAxisCount;
+        final double aspectRatio = cellWidth / cellHeight;
+        
         return GridView.builder(
-          itemCount: tiles.length,
+          itemCount: itemCount,
+          shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 14.w,
-            mainAxisSpacing: 14.h,
-            childAspectRatio: gridChildAspectRatioForFit(
-              maxWidth: constraints.maxWidth,
-              maxHeight: constraints.maxHeight,
-              crossAxisCount: crossAxisCount,
-              itemCount: tiles.length,
-              mainAxisSpacing: 14.h,
-              crossAxisSpacing: 14.w,
-            ),
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
+            childAspectRatio: aspectRatio,
           ),
           itemBuilder: (_, int index) => tiles[index],
         );
