@@ -76,12 +76,12 @@ class _MediaScreenState extends State<MediaScreen> {
               Expanded(
                 child: Container(
                   color: colorScheme.surface,
-                  padding: EdgeInsets.all(10.w),
+                  padding: const EdgeInsets.all(12.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       _leftMenu(),
-                      SizedBox(width: 12.w),
+                      const SizedBox(width: 14.0),
                       Expanded(child: _mainGrid()),
                     ],
                   ),
@@ -97,9 +97,16 @@ class _MediaScreenState extends State<MediaScreen> {
   Widget _leftMenu() {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isTablet = isTabletLayout(context);
     final bool isLandscape = _isLandscape;
+    
+    // Fixed sizes for both tablet and mobile
+    final double menuWidth = isTablet 
+        ? (isLandscape ? 110.0 : 145.0) 
+        : 135.0; // Moderate size for mobile (was 155.0)
+    
     return Container(
-      width: (isLandscape ? 110 : 145).w,
+      width: menuWidth,
       decoration: BoxDecoration(
         color: isDark ? colorScheme.surfaceContainerHighest : colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(4.r),
@@ -127,10 +134,10 @@ class _MediaScreenState extends State<MediaScreen> {
             ),
           ),
           Container(
-            margin: EdgeInsets.only(bottom: (isLandscape ? 4 : 10).h),
+            margin: EdgeInsets.only(bottom: isTablet ? (isLandscape ? 4.0 : 10.0) : 12.0),
             padding: EdgeInsets.symmetric(
-              horizontal: (isLandscape ? 4 : 8).w,
-              vertical: (isLandscape ? 4 : 6).h,
+              horizontal: isTablet ? (isLandscape ? 4.0 : 8.0) : 6.0, // Reduced from 10.0
+              vertical: isTablet ? (isLandscape ? 4.0 : 6.0) : 6.0, // Reduced from 8.0
             ),
             decoration: BoxDecoration(
               color: colorScheme.surface,
@@ -140,12 +147,12 @@ class _MediaScreenState extends State<MediaScreen> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 _pagerButton(Icons.arrow_back, false),
-                SizedBox(width: (isLandscape ? 4 : 8).w),
+                SizedBox(width: isTablet ? (isLandscape ? 4.0 : 8.0) : 6.0), // Reduced from 10.0
                 Text(
                   '1 / 1',
-                  style: TextStyle(fontSize: (isLandscape ? 9 : 11).sp),
+                  style: TextStyle(fontSize: isTablet ? (isLandscape ? 9.0 : 11.0) : 11.0), // Reduced from 13.0
                 ),
-                SizedBox(width: (isLandscape ? 4 : 8).w),
+                SizedBox(width: isTablet ? (isLandscape ? 4.0 : 8.0) : 6.0), // Reduced from 10.0
                 _pagerButton(Icons.arrow_forward, true),
               ],
             ),
@@ -164,16 +171,25 @@ class _MediaScreenState extends State<MediaScreen> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isTablet = isTabletLayout(context);
     final bool isLandscape = _isLandscape;
     final bool useDarkSelectedStyle = isDark && selected;
     final bool useLightSelectedStyle = !isDark && selected;
+    
+    // Fixed sizes for both tablet and mobile
+    final double iconSize = isTablet ? (isLandscape ? 16.0 : 22.0) : 24.0; // was 26.0
+    final double textSize = isTablet ? (isLandscape ? 12.0 : 16.0) : 16.0; // was 18.0
+    final double horizontalPadding = isTablet ? (isLandscape ? 8.0 : 10.0) : 10.0; // was 12.0
+    final double verticalPadding = isTablet ? (isLandscape ? 5.0 : 8.0) : 8.0; // was 10.0
+    final double spacing = isTablet ? (isLandscape ? 4.0 : 8.0) : 8.0; // was 10.0
+    
     return InkWell(
       onTap: onTap,
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(
-          horizontal: (isLandscape ? 8 : 10).w,
-          vertical: (isLandscape ? 5 : 8).h,
+          horizontal: horizontalPadding,
+          vertical: verticalPadding,
         ),
         decoration: BoxDecoration(
           color: useDarkSelectedStyle
@@ -189,14 +205,14 @@ class _MediaScreenState extends State<MediaScreen> {
           children: <Widget>[
             Icon(
               icon,
-              size: (isLandscape ? 16 : 22).w,
+              size: iconSize,
               color: selected ? Colors.black : colorScheme.onSurface,
             ),
-            SizedBox(width: (isLandscape ? 4 : 8).w),
+            SizedBox(width: spacing),
             Text(
               label,
               style: textTheme.bodyMedium?.copyWith(
-                fontSize: (isLandscape ? 12 : 16).sp,
+                fontSize: textSize,
                 color: selected ? Colors.black : colorScheme.onSurface,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               ),
@@ -209,13 +225,17 @@ class _MediaScreenState extends State<MediaScreen> {
 
   Widget _pagerButton(IconData icon, bool dark) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isTablet = isTabletLayout(context);
     final bool isLandscape = _isLandscape;
+    final double radius = isTablet ? (isLandscape ? 12.0 : 18.0) : 16.0; // Reduced from 20.0
+    final double iconSize = isTablet ? (isLandscape ? 12.0 : 16.0) : 14.0; // Reduced from 18.0
+    
     return CircleAvatar(
-      radius: (isLandscape ? 12 : 18).r,
+      radius: radius,
       backgroundColor: dark ? colorScheme.onSurface : colorScheme.surface,
       child: Icon(
         icon,
-        size: (isLandscape ? 12 : 16).w,
+        size: iconSize,
         color: dark ? colorScheme.surface : colorScheme.onSurface,
       ),
     );
@@ -328,19 +348,23 @@ class _MediaScreenState extends State<MediaScreen> {
   }
 
   Widget _uploadTile() {
+    final bool isTablet = isTabletLayout(context);
     final bool isLandscape = _isLandscape;
+    final double circleSize = isTablet ? (isLandscape ? 48.0 : 70.0) : 80.0;
+    final double iconSize = isTablet ? (isLandscape ? 30.0 : 46.0) : 52.0;
+    
     return _tileFrame(
       child: Container(
         color: _fixedTileGrey,
         child: Center(
           child: Container(
-            width: (isLandscape ? 48 : 70).w,
-            height: (isLandscape ? 48 : 70).w,
+            width: circleSize,
+            height: circleSize,
             decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
             child: Icon(
               Icons.file_upload_outlined,
               color: Colors.black,
-              size: (isLandscape ? 30 : 46).w,
+              size: iconSize,
             ),
           ),
         ),
@@ -439,16 +463,17 @@ class _MediaScreenState extends State<MediaScreen> {
   }
 
   Widget _drawingTile() {
+    final bool isTablet = isTabletLayout(context);
     final bool isLandscape = _isLandscape;
+    final double padding = isTablet ? (isLandscape ? 8.0 : 14.0) : 18.0;
+    
     return _tileFrame(
       child: Container(
         color: _fixedTileGrey,
         child: Padding(
-          padding: EdgeInsets.all((isLandscape ? 8 : 14).w),
+          padding: EdgeInsets.all(padding),
           child: Image.asset(
             AppImages.drawing,
-            height: (isLandscape ? 14 : 20).h,
-            width: (isLandscape ? 14 : 20).w,
             fit: BoxFit.contain,
           ),
         ),
@@ -457,17 +482,28 @@ class _MediaScreenState extends State<MediaScreen> {
   }
 
   Widget _albumTile(String title) {
+    final bool isTablet = isTabletLayout(context);
     final bool isLandscape = _isLandscape;
+    final double horizontalPadding = isTablet ? (isLandscape ? 6.0 : 10.0) : 12.0;
+    final double topPadding = isTablet ? (isLandscape ? 4.0 : 8.0) : 10.0;
+    final double bottomPadding = isTablet ? (isLandscape ? 3.0 : 6.0) : 8.0;
+    final double badgePaddingH = isTablet ? (isLandscape ? 6.0 : 10.0) : 12.0;
+    final double badgePaddingV = isTablet ? (isLandscape ? 2.0 : 3.0) : 4.0;
+    final double badgeTextSize = isTablet ? (isLandscape ? 9.0 : 11.0) : 13.0;
+    final double nameTextSize = isTablet ? (isLandscape ? 10.0 : 13.0) : 15.0;
+    final double descTextSize = isTablet ? (isLandscape ? 8.0 : 11.0) : 13.0;
+    final double spacing = isTablet ? (isLandscape ? 2.0 : 3.0) : 4.0;
+    
     return _tileFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(
-              (isLandscape ? 6 : 10).w,
-              (isLandscape ? 4 : 8).h,
-              (isLandscape ? 6 : 10).w,
-              (isLandscape ? 3 : 6).h,
+              horizontalPadding,
+              topPadding,
+              horizontalPadding,
+              bottomPadding,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -475,8 +511,8 @@ class _MediaScreenState extends State<MediaScreen> {
               children: <Widget>[
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: (isLandscape ? 6 : 10).w,
-                    vertical: (isLandscape ? 2 : 3).h,
+                    horizontal: badgePaddingH,
+                    vertical: badgePaddingV,
                   ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF71D2F8),
@@ -485,24 +521,24 @@ class _MediaScreenState extends State<MediaScreen> {
                   child: Text(
                     title,
                     style: TextStyle(
-                      fontSize: (isLandscape ? 9 : 11).sp,
+                      fontSize: badgeTextSize,
                       color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                SizedBox(height: (isLandscape ? 2 : 3).h),
+                SizedBox(height: spacing),
                 Text(
                   'Album Name',
                   style: TextStyle(
-                    fontSize: (isLandscape ? 10 : 13).sp,
+                    fontSize: nameTextSize,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
                   'Write Here',
                   style: TextStyle(
-                    fontSize: (isLandscape ? 8 : 11).sp,
+                    fontSize: descTextSize,
                     color: Colors.black54,
                   ),
                 ),
@@ -529,7 +565,12 @@ class _MediaScreenState extends State<MediaScreen> {
   }
 
   Widget _statusTile(String label, IconData icon) {
+    final bool isTablet = isTabletLayout(context);
     final bool isLandscape = _isLandscape;
+    final double iconSize = isTablet ? (isLandscape ? 24.0 : 36.0) : 42.0;
+    final double textSize = isTablet ? (isLandscape ? 11.0 : 14.0) : 16.0;
+    final double spacing = isTablet ? (isLandscape ? 4.0 : 8.0) : 10.0;
+    
     return _tileFrame(
       child: Container(
         color: _fixedTileGrey,
@@ -537,12 +578,12 @@ class _MediaScreenState extends State<MediaScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Icon(icon, size: (isLandscape ? 24 : 36).w, color: Colors.black54),
-              SizedBox(height: (isLandscape ? 4 : 8).h),
+              Icon(icon, size: iconSize, color: Colors.black54),
+              SizedBox(height: spacing),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: (isLandscape ? 11 : 14).sp,
+                  fontSize: textSize,
                   color: Colors.black87,
                 ),
               ),

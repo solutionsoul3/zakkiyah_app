@@ -74,8 +74,8 @@ class AppHeaderTitle extends StatelessWidget {
     // Fixed sizes for tablets to prevent overflow on rotation
     if (isTablet && isLandscape) return 16.0;
     if (isTablet) return 18.0;
-    // Phone sizes remain responsive
-    return segments.length > 1 ? 17.sp : 19.sp;
+    // Mobile gets larger fixed sizes
+    return segments.length > 1 ? 20.0 : 22.0;
   }
 
   @override
@@ -87,9 +87,9 @@ class AppHeaderTitle extends StatelessWidget {
     final bool isLandscape =
         MediaQuery.sizeOf(context).width > MediaQuery.sizeOf(context).height;
     final double textSize = _resolveTextSize(context);
-    // Fixed spacing for tablets to ensure consistent layout
-    final double gap = isTablet ? (isLandscape ? 6.0 : 8.0) : 8.w;
-    final double iconGap = isTablet ? (isLandscape ? 4.0 : 5.0) : 5.w;
+    // Fixed spacing for tablets and mobile for consistent layout
+    final double gap = isTablet ? (isLandscape ? 6.0 : 8.0) : 10.0;
+    final double iconGap = isTablet ? (isLandscape ? 4.0 : 5.0) : 6.0;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -101,13 +101,13 @@ class AppHeaderTitle extends StatelessWidget {
             announceText: 'Back',
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 3.0 : 2.w,
-                vertical: isTablet ? 3.0 : 2.h,
+                horizontal: isTablet ? 3.0 : 3.0,
+                vertical: isTablet ? 3.0 : 3.0,
               ),
               child: Icon(Icons.arrow_back_ios_new, size: textSize * 0.85),
             ),
           ),
-          SizedBox(width: isTablet ? 3.0 : 2.w),
+          SizedBox(width: isTablet ? 3.0 : 3.0),
         ],
         Flexible(
           child: _headerTap(
@@ -116,8 +116,8 @@ class AppHeaderTitle extends StatelessWidget {
             announceText: 'Home',
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 3.0 : 2.w,
-                vertical: isTablet ? 3.0 : 2.h,
+                horizontal: isTablet ? 3.0 : 3.0,
+                vertical: isTablet ? 3.0 : 3.0,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -314,10 +314,10 @@ class AppScreenHeader extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            // Fixed text size for tablets
+                            // Larger text size for mobile devices
                             fontSize: isTablet 
                                 ? (isLandscape ? 16.0 : 18.0)
-                                : 16.sp,
+                                : 20.0, // Increased from 16.sp
                             color: Colors.black,
                             fontWeight: FontWeight.w500,
                             height: 1.0,

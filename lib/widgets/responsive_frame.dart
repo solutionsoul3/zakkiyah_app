@@ -54,13 +54,14 @@ EdgeInsets responsivePadding(BuildContext context) {
   final bool isLandscape = isLandscapeLayout(context);
   
   if (isTablet && isLandscape) {
-    return EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h);
+    return const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0);
   } else if (isTablet) {
-    return EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h);
+    return const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0);
   } else if (isLandscape) {
-    return EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h);
+    return const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0);
   }
-  return EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h);
+  // Mobile gets larger padding
+  return const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0);
 }
 
 /// Aspect ratio so [itemCount] tiles fill the grid area without scrolling.
@@ -143,8 +144,9 @@ double railWidth(BuildContext context) {
   final bool isLandscape = isLandscapeLayout(context);
   if (isTablet && isLandscape) return 80.0;
   if (isTablet) return 90.0;
+  // Mobile gets moderate sizes - not too big
   if (isLandscape) return 75.0;
-  return 92.w;
+  return 80.0;
 }
 
 /// Icon button size inside the left rail.
@@ -153,8 +155,9 @@ double railIconContainerW(BuildContext context) {
   final bool isLandscape = isLandscapeLayout(context);
   if (isTablet && isLandscape) return 56.0;
   if (isTablet) return 64.0;
-  if (isLandscape) return 52.0;
-  return 64.w;
+  // Mobile gets moderate sizes - not too big
+  if (isLandscape) return 54.0;
+  return 66.0;
 }
 
 double railIconSize(BuildContext context) {
@@ -162,8 +165,9 @@ double railIconSize(BuildContext context) {
   final bool isLandscape = isLandscapeLayout(context);
   if (isTablet && isLandscape) return 22.0;
   if (isTablet) return 24.0;
-  if (isLandscape) return 20.0;
-  return 22.w;
+  // Mobile gets moderate sizes - not too big
+  if (isLandscape) return 22.0;
+  return 26.0;
 }
 
 double railLabelSp(BuildContext context) {
@@ -171,8 +175,9 @@ double railLabelSp(BuildContext context) {
   final bool isLandscape = isLandscapeLayout(context);
   if (isTablet && isLandscape) return 11.0;
   if (isTablet) return 12.0;
-  if (isLandscape) return 9.0;
-  return 10.sp;
+  // Mobile gets moderate sizes - not too big
+  if (isLandscape) return 10.0;
+  return 12.0;
 }
 
 double railVerticalPadding(BuildContext context) {
@@ -180,8 +185,9 @@ double railVerticalPadding(BuildContext context) {
   final bool isLandscape = isLandscapeLayout(context);
   if (isTablet && isLandscape) return 8.0;
   if (isTablet) return 10.0;
-  if (isLandscape) return 6.0;
-  return 8.h;
+  // Mobile gets moderate sizes - not too big
+  if (isLandscape) return 7.0;
+  return 9.0;
 }
 
 // ─────────────────────────────────────────────

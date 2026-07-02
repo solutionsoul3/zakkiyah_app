@@ -116,19 +116,19 @@ class _TalkScreenState extends State<TalkScreen> {
               ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.all(10.w),
+                  padding: const EdgeInsets.all(12.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       _leftRail(context),
-                      SizedBox(width: 10.w),
+                      const SizedBox(width: 12.0),
                       Expanded(
                         child: LayoutBuilder(
                           builder: (BuildContext context, BoxConstraints constraints) {
                             final int crossAxisCount =
                                 responsiveCrossAxisCount(context, width: constraints.maxWidth);
                             final bool isTablet = isTabletLayout(context);
-                            final double spacing = isTablet ? 14.0 : 14.w;
+                            final double spacing = isTablet ? 14.0 : 16.0; // Increased spacing for mobile
                             
                             // Calculate to fit all 12 categories in 6 rows (2x6 grid)
                             final int itemCount = _categories.length;
@@ -176,7 +176,7 @@ class _TalkScreenState extends State<TalkScreen> {
   Widget _leftRail(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      width: 92.w,
+      width: railWidth(context),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFE3E3E3),
         borderRadius: BorderRadius.circular(14.r),
@@ -184,59 +184,59 @@ class _TalkScreenState extends State<TalkScreen> {
       child: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            SizedBox(height: 8.h),
+            SizedBox(height: railVerticalPadding(context)),
             _railIcon(
               context: context,
               icon: Icons.arrow_back,
               label: 'Back',
               onTap: () => Navigator.pop(context),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: railVerticalPadding(context)),
             _railIcon(
               context: context,
               icon: Icons.add_box_outlined,
               label: 'Add',
               onTap: () {},
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: railVerticalPadding(context)),
             _railIcon(
               context: context,
               icon: _isEditing ? Icons.check_circle_outline : Icons.edit_note_outlined,
               label: _isEditing ? 'Done' : 'Edit',
               onTap: () => setState(() => _isEditing = !_isEditing),
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: railVerticalPadding(context) * 2.5),
             _railIcon(
               context: context,
               icon: Icons.undo,
               label: 'Undo',
               onTap: () {},
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: railVerticalPadding(context) * 2.5),
             _railIcon(
               context: context,
               icon: Icons.redo,
               label: 'Redo',
               onTap: () {},
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: railVerticalPadding(context) * 1.5),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Icon(Icons.chevron_left, size: 20.w, color: Colors.black54),
-                SizedBox(width: 6.w),
+                Icon(Icons.chevron_left, size: railIconSize(context) * 0.9, color: Colors.black54),
+                SizedBox(width: 6.0),
                 Text(
                   '1/1',
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: railLabelSp(context),
                     color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
-                SizedBox(width: 6.w),
-                Icon(Icons.chevron_right, size: 20.w, color: Colors.black54),
+                SizedBox(width: 6.0),
+                Icon(Icons.chevron_right, size: railIconSize(context) * 0.9, color: Colors.black54),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: railVerticalPadding(context)),
           ],
         ),
       ),
@@ -254,20 +254,20 @@ class _TalkScreenState extends State<TalkScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8.r),
       child: Container(
-        width: 64.w,
-        padding: EdgeInsets.symmetric(vertical: 8.h),
+        width: railIconContainerW(context),
+        padding: EdgeInsets.symmetric(vertical: railVerticalPadding(context)),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF2F2F2),
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Column(
           children: <Widget>[
-            Icon(icon, size: 22.w, color: isDark ? Colors.white70 : Colors.black54),
-            SizedBox(height: 3.h),
+            Icon(icon, size: railIconSize(context), color: isDark ? Colors.white70 : Colors.black54),
+            SizedBox(height: 3.0),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10.sp,
+                fontSize: railLabelSp(context),
                 color: isDark ? Colors.white : Colors.black,
               ),
             ),
@@ -278,7 +278,23 @@ class _TalkScreenState extends State<TalkScreen> {
   }
 
   Widget _categoryCard(_ImportantCategoryData data) {
+    final bool isTablet = isTabletLayout(context);
     final Color lightTileBackground = Color.lerp(data.labelColor, Colors.white, 0.82)!;
+    
+    // Larger sizes for mobile
+    final double borderRadius = isTablet ? 20.0 : 24.0;
+    final double innerRadius = isTablet ? 18.0 : 22.0;
+    final double ribbonTop = isTablet ? 24.0 : 28.0;
+    final double ribbonWidth = isTablet ? 120.0 : 130.0;
+    final double ribbonHeight = isTablet ? 38.0 : 34.0;
+    final double ribbonPaddingLeft = isTablet ? 14.0 : 16.0;
+    final double ribbonPaddingRight = isTablet ? 26.0 : 30.0;
+    final double ribbonTextSize = isTablet ? 15.0 : 18.0;
+    final double imagePadding = isTablet ? 10.0 : 12.0;
+    final double imagePaddingBottom = isTablet ? 8.0 : 10.0;
+    final double imageSize = isTablet ? 65.0 : 75.0;
+    final double iconSize = isTablet ? 28.0 : 32.0;
+    
     return InkWell(
       // onTap: () {
       //   Get.to(
@@ -290,27 +306,27 @@ class _TalkScreenState extends State<TalkScreen> {
       //     ),
       //   );
       // },
-      borderRadius: BorderRadius.circular(20.r),
+      borderRadius: BorderRadius.circular(borderRadius),
       child: Stack(
         clipBehavior: Clip.none,
         children: <Widget>[
           Positioned.fill(
-            top: 24.h,
+            top: ribbonTop,
             child: Container(
               decoration: BoxDecoration(
                 color: lightTileBackground,
-                borderRadius: BorderRadius.circular(18.r),
+                borderRadius: BorderRadius.circular(innerRadius),
               ),
               child: Padding(
-                padding: EdgeInsets.fromLTRB(10.w, 10.h, 10.w, 8.h),
+                padding: EdgeInsets.fromLTRB(imagePadding, imagePadding, imagePadding, imagePaddingBottom),
                 child: Center(
                   child: Image.asset(
                     data.imagePath,
-                    width: 65.w,
-                    height: 65.h,
+                    width: imageSize,
+                    height: imageSize,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) =>
-                        Icon(Icons.image_outlined, size: 28.w, color: Colors.blueGrey),
+                        Icon(Icons.image_outlined, size: iconSize, color: Colors.blueGrey),
                   ),
                 ),
               ),
@@ -322,10 +338,10 @@ class _TalkScreenState extends State<TalkScreen> {
             child: ClipPath(
               clipper: _RibbonClipper(),
               child: Container(
-                width: 120.w,
-                height: 38.h,
+                width: ribbonWidth,
+                height: ribbonHeight,
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 14.w, right: 26.w),
+                padding: EdgeInsets.only(left: ribbonPaddingLeft, right: ribbonPaddingRight),
                 color: data.labelColor,
                 child: Text(
                   data.label,
@@ -333,7 +349,7 @@ class _TalkScreenState extends State<TalkScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Colors.black87,
-                    fontSize: 15.sp,
+                    fontSize: ribbonTextSize,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

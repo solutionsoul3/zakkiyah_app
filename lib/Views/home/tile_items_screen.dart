@@ -80,7 +80,7 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       _leftActionRail(),
-                      SizedBox(width: isTabletLayout(context) ? 12.0 : 10.w),
+                      SizedBox(width: isTabletLayout(context) ? 12.0 : 12.0),
                       Expanded(
                         child: LayoutBuilder(
                           builder: (BuildContext context, BoxConstraints constraints) {

@@ -148,11 +148,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _topBar() {
     final bool isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final double topBarHeight = isTablet ? 64.0 : 70.0; // Larger for mobile
+    final double horizontalPadding = isTablet ? 12.0 : 12.0;
+    final double verticalPadding = isTablet ? 6.0 : 6.0;
+    final double titleFontSize = isTablet ? 22.0 : 24.0; // Larger for mobile
+    final double menuButtonSize = isTablet ? 26.0 : 30.0; // Larger for mobile
+    
     return Container(
-      height: 64.h,
+      height: topBarHeight,
       width: double.infinity,
       color: Colors.black,
-      padding: EdgeInsets.symmetric(horizontal: isTablet ? 12.w : 10.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
@@ -167,7 +173,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: DefaultTextStyle(
                     style: const TextStyle(color: Colors.white),
                     child: AppHeaderTitle(
-                      fontSize: 22.sp,
+                      fontSize: titleFontSize,
                       onHomeTap: _goHome,
                       segments: <AppHeaderSegment>[
                         AppHeaderSegment(
@@ -181,30 +187,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-          SizedBox(width: 6.w),
-          MenuDrawerButton(size: isTablet ? 26.0 : 24.0),
+          SizedBox(width: 6.0),
+          MenuDrawerButton(size: menuButtonSize),
         ],
       ),
     );
   }
 
   Widget _subHeader() {
+    final bool isTablet = isTabletLayout(context);
+    final double horizontalPadding = isTablet ? 12.0 : 14.0;
+    final double verticalPadding = isTablet ? 8.0 : 10.0;
+    final double badgeWidth = isTablet ? 135.0 : 150.0;
+    final double badgeVerticalPadding = isTablet ? 8.0 : 10.0;
+    final double textSize = isTablet ? 12.0 : 14.0; // Larger for mobile
+    
     return Container(
       width: double.infinity,
       color: _isDark ? Colors.black : const Color(0xFFECECEC),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
       child: Container(
-        width: 135.w,
+        width: badgeWidth,
         alignment: Alignment.center,
-        padding: EdgeInsets.symmetric(vertical: 8.h),
+        padding: EdgeInsets.symmetric(vertical: badgeVerticalPadding),
         decoration: BoxDecoration(
           color: const Color(0xFF66D5FD),
-          borderRadius: BorderRadius.circular(6.r),
+          borderRadius: BorderRadius.circular(6.0),
         ),
         child: Text(
           'General Settings',
           style: TextStyle(
-            fontSize: 12.sp,
+            fontSize: textSize,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
@@ -243,31 +256,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _menuTile(String text, SettingsTab tab, IconData icon) {
+    final bool isTablet = isTabletLayout(context);
     final bool active = _selectedTab == tab;
+    final double horizontalPadding = isTablet ? 12.0 : 14.0;
+    final double verticalPadding = isTablet ? 10.0 : 12.0; // Larger for mobile
+    final double iconSize = isTablet ? 18.0 : 22.0; // Larger for mobile
+    final double textSize = isTablet ? 13.0 : 16.0; // Larger for mobile
+    final double spacing = isTablet ? 8.0 : 10.0;
+    
     return InkWell(
       onTap: () => setState(() => _selectedTab = tab),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
         decoration: BoxDecoration(
           color: active
               ? (_isDark ? const Color(0xFF5E61D8) : const Color(0xFF8B8DE8))
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(6.r),
+          borderRadius: BorderRadius.circular(6.0),
         ),
         child: Row(
           children: <Widget>[
             Icon(
               icon,
               color: active ? Colors.white : (_isDark ? Colors.white70 : Colors.black54),
-              size: 18.w,
+              size: iconSize,
             ),
-            SizedBox(width: 8.w),
+            SizedBox(width: spacing),
             Text(
               text,
               style: TextStyle(
                 color: active ? Colors.white : _textColor,
-                fontSize: 13.sp,
+                fontSize: textSize,
               ),
             ),
           ],
@@ -404,10 +424,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _profileContent() {
-    final double avatarRadius = MediaQuery.of(context).orientation == Orientation.landscape
-        ? 40.r
-        : 48.r;
+    final bool isTablet = isTabletLayout(context);
+    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    
+    // Larger sizes for mobile
+    final double avatarRadius = isTablet 
+        ? (isLandscape ? 40.0 : 48.0)
+        : 56.0; // Larger for mobile
     final double avatarSize = avatarRadius * 2;
+    final double editIconSize = isTablet ? 22.0 : 26.0; // Larger for mobile
+    final double editButtonPadding = isTablet ? 6.0 : 7.0;
+    final double editIconInButton = isTablet ? 14.0 : 16.0;
+    final double usernameFontSize = isTablet ? 22.0 : 26.0; // Larger for mobile
+    final double labelFontSize = isTablet ? 16.0 : 18.0; // Larger for mobile
+    final double fieldFontSize = isTablet ? 16.0 : 18.0; // Larger for mobile
+    final double fieldIconSize = isTablet ? 18.0 : 20.0;
+    final double buttonWidth = isTablet ? 90.0 : 100.0;
 
     return SingleChildScrollView(
       child: _sectionCard(
@@ -424,20 +456,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icon(
                   _isEditingProfile ? Icons.check_circle : Icons.edit,
                   color: const Color(0xFF66D5FD),
-                  size: 22.w,
+                  size: editIconSize,
                 ),
               ),
             ),
             Align(
               alignment: Alignment.centerLeft,
               child: SizedBox(
-                width: avatarSize + 12.w,
-                height: avatarSize + 12.h,
+                width: avatarSize + 14.0,
+                height: avatarSize + 14.0,
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: <Widget>[
                     Positioned(
-                      left: 6.w,
+                      left: 7.0,
                       top: 0,
                       child: CircleAvatar(
                         radius: avatarRadius,
@@ -471,14 +503,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           );
                         },
                         child: Container(
-                          padding: EdgeInsets.all(6.w),
+                          padding: EdgeInsets.all(editButtonPadding),
                           decoration: const BoxDecoration(
                             color: Color(0xFF66D5FD),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.edit,
-                            size: 14.w,
+                            size: editIconInButton,
                             color: Colors.white,
                           ),
                         ),
@@ -488,55 +520,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: 10.0),
             Text(
               _usernameController.text,
               style: TextStyle(
-                fontSize: 22.sp,
+                fontSize: usernameFontSize,
                 color: _textColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            SizedBox(height: 14.h),
+            SizedBox(height: 16.0),
             Text(
               'Username',
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: labelFontSize,
                 fontWeight: FontWeight.w500,
                 color: _textColor,
               ),
             ),
-            SizedBox(height: 6.h),
+            SizedBox(height: 8.0),
             _field(
               controller: _usernameController,
               editable: _isEditingProfile,
+              fontSize: fieldFontSize,
+              iconSize: fieldIconSize,
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: 10.0),
             Text(
               'Email',
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: labelFontSize,
                 fontWeight: FontWeight.w500,
                 color: _textColor,
               ),
             ),
-            SizedBox(height: 6.h),
+            SizedBox(height: 8.0),
             _field(
               controller: _emailController,
               editable: _isEditingProfile,
+              fontSize: fieldFontSize,
+              iconSize: fieldIconSize,
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.0),
             SizedBox(
-              width: 90.w,
+              width: buttonWidth,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFF66D5FD),
-                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
                 ),
                 onPressed: () {
                   setState(() => _isEditingProfile = false);
                 },
-                icon: const Icon(Icons.check, size: 14),
+                icon: const Icon(Icons.check, size: 16),
                 label: const Text('Save'),
               ),
             ),
@@ -1049,11 +1085,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _sectionTitle(String text) {
+    final bool isTablet = isTabletLayout(context);
+    final double titleSize = isTablet ? 18.0 : 20.0; // Larger for mobile
+    
     return Text(
       text,
       style: TextStyle(
         fontWeight: FontWeight.w500,
-        fontSize: 18.sp,
+        fontSize: titleSize,
         color: _textColor,
       ),
     );
@@ -1127,11 +1166,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _field({
     required TextEditingController controller,
     required bool editable,
+    double? fontSize,
+    double? iconSize,
   }) {
+    final bool isTablet = isTabletLayout(context);
+    final double effectiveFontSize = fontSize ?? (isTablet ? 16.0 : 18.0);
+    final double effectiveIconSize = iconSize ?? (isTablet ? 18.0 : 20.0);
+    final double horizontalPadding = isTablet ? 10.0 : 12.0;
+    final double verticalPadding = isTablet ? 10.0 : 12.0;
+    
     return Container(
       decoration: BoxDecoration(
         color: _isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF6F6F6),
-        borderRadius: BorderRadius.circular(6.r),
+        borderRadius: BorderRadius.circular(6.0),
         border: Border.all(
           color: _isDark ? Colors.white24 : Colors.black12,
         ),
@@ -1143,17 +1190,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         decoration: InputDecoration(
           isDense: true,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+          contentPadding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
           suffixIcon: Icon(
             Icons.edit,
-            size: 18.w,
+            size: effectiveIconSize,
             color: editable
                 ? const Color(0xFF66D5FD)
                 : (_isDark ? Colors.white38 : Colors.black38),
           ),
         ),
         style: TextStyle(
-          fontSize: 16.sp,
+          fontSize: effectiveFontSize,
           fontWeight: FontWeight.w400,
           color: _textColor,
         ),
