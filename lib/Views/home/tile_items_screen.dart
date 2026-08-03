@@ -151,7 +151,8 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
             ? constraints.maxHeight
             : constraints.maxWidth;
         final double actionSize = (tileShort * 0.17).clamp(26.0, 36.0);
-        final double imageSize = (tileShort * 0.42).clamp(56.0, 120.0);
+        // INCREASED image size: 50% of tile's short side for better visibility
+        final double imageSize = (tileShort * 0.50).clamp(65.0, 140.0);
         final double labelFontSize = (tileShort * 0.085).clamp(12.0, 16.0);
 
         return Stack(
@@ -532,15 +533,18 @@ class _TileItemsScreenState extends State<TileItemsScreen> {
                     color: _currentPage > 0 ? Colors.black54 : Colors.black26,
                   ),
                 ),
-                SizedBox(width: isTablet ? 6.0 : 6.w),
-                Text(
-                  '${_currentPage + 1}/${_pageItems.length}',
-                  style: TextStyle(
-                    fontSize: isTablet ? (isLandscape ? 12.0 : 13.0) : 14.sp,
-                    color: isDark ? Colors.white : Colors.black,
+                SizedBox(width: isTablet ? 4.0 : 4.w),
+                Flexible(
+                  child: Text(
+                    '${_currentPage + 1}/${_pageItems.length}',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: isTablet ? (isLandscape ? 11.0 : 13.0) : 13.sp,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
                   ),
                 ),
-                SizedBox(width: isTablet ? 6.0 : 6.w),
+                SizedBox(width: isTablet ? 4.0 : 4.w),
                 VoiceTap(
                   announceText: 'Next page',
                   enabled: _currentPage < _pageItems.length - 1,

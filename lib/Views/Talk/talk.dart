@@ -278,86 +278,98 @@ class _TalkScreenState extends State<TalkScreen> {
   }
 
   Widget _categoryCard(_ImportantCategoryData data) {
-    final bool isTablet = isTabletLayout(context);
     final Color lightTileBackground = Color.lerp(data.labelColor, Colors.white, 0.82)!;
     
-    // Larger sizes for mobile
-    final double borderRadius = isTablet ? 20.0 : 24.0;
-    final double innerRadius = isTablet ? 18.0 : 22.0;
-    final double ribbonTop = isTablet ? 24.0 : 28.0;
-    final double ribbonWidth = isTablet ? 120.0 : 130.0;
-    final double ribbonHeight = isTablet ? 38.0 : 34.0;
-    final double ribbonPaddingLeft = isTablet ? 14.0 : 16.0;
-    final double ribbonPaddingRight = isTablet ? 26.0 : 30.0;
-    final double ribbonTextSize = isTablet ? 15.0 : 18.0;
-    final double imagePadding = isTablet ? 10.0 : 12.0;
-    final double imagePaddingBottom = isTablet ? 8.0 : 10.0;
-    final double imageSize = isTablet ? 65.0 : 75.0;
-    final double iconSize = isTablet ? 28.0 : 32.0;
-    
-    return InkWell(
-      // onTap: () {
-      //   Get.to(
-      //         () => TileItemsScreen(
-      //       title: data.label,
-      //       defaultAddImagePath: data.imagePath,
-      //
-      //       breadcrumbTitles: <String>['Home', 'Important',],
-      //     ),
-      //   );
-      // },
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: <Widget>[
-          Positioned.fill(
-            top: ribbonTop,
-            child: Container(
-              decoration: BoxDecoration(
-                color: lightTileBackground,
-                borderRadius: BorderRadius.circular(innerRadius),
-              ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(imagePadding, imagePadding, imagePadding, imagePaddingBottom),
-                child: Center(
-                  child: Image.asset(
-                    data.imagePath,
-                    width: imageSize,
-                    height: imageSize,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) =>
-                        Icon(Icons.image_outlined, size: iconSize, color: Colors.blueGrey),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool isTablet = isTabletLayout(context);
+        final double tileHeight = constraints.maxHeight;
+        final double tileWidth = constraints.maxWidth;
+        
+        // Sizes based on actual tile dimensions
+        final double borderRadius = isTablet ? 20.0 : 24.0;
+        final double innerRadius = isTablet ? 18.0 : 22.0;
+        
+        // SMALLER ribbon sizes - takes less space
+        final double ribbonTop = 16.0; // Reduced from 20px to 16px
+        final double ribbonHeight = 28.0; // Reduced from 32px to 28px
+        final double ribbonWidth = (tileWidth * 0.65).clamp(90.0, 135.0);
+        final double ribbonPaddingLeft = 8.0;
+        final double ribbonPaddingRight = 22.0;
+        final double ribbonTextSize = (tileHeight * 0.090).clamp(10.0, 15.0);
+        
+        // Image - MORE space allocated
+        final double availableImageHeight = tileHeight - ribbonTop - 2.0;
+        final double imagePadding = 3.0; // Minimal padding
+        // Image fills MORE available space - 80% instead of 70%
+        final double imageSize = (availableImageHeight * 0.80).clamp(35.0, 120.0);
+        final double iconSize = imageSize * 0.45;
+        
+        return InkWell(
+          // onTap: () {
+          //   Get.to(
+          //         () => TileItemsScreen(
+          //       title: data.label,
+          //       defaultAddImagePath: data.imagePath,
+          //
+          //       breadcrumbTitles: <String>['Home', 'Important',],
+          //     ),
+          //   );
+          // },
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: <Widget>[
+              Positioned.fill(
+                top: ribbonTop,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: lightTileBackground,
+                    borderRadius: BorderRadius.circular(innerRadius),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(imagePadding),
+                    child: Center(
+                      child: Image.asset(
+                        data.imagePath,
+                        width: imageSize,
+                        height: imageSize,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) =>
+                            Icon(Icons.image_outlined, size: iconSize, color: Colors.blueGrey),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            child: ClipPath(
-              clipper: _RibbonClipper(),
-              child: Container(
-                width: ribbonWidth,
-                height: ribbonHeight,
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: ribbonPaddingLeft, right: ribbonPaddingRight),
-                color: data.labelColor,
-                child: Text(
-                  data.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: ribbonTextSize,
-                    fontWeight: FontWeight.w500,
+              Positioned(
+                top: 0,
+                left: 0,
+                child: ClipPath(
+                  clipper: _RibbonClipper(),
+                  child: Container(
+                    width: ribbonWidth,
+                    height: ribbonHeight,
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.only(left: ribbonPaddingLeft, right: ribbonPaddingRight),
+                    color: data.labelColor,
+                    child: Text(
+                      data.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: ribbonTextSize,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

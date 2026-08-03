@@ -114,23 +114,25 @@ class _MediaScreenState extends State<MediaScreen> {
       child: Column(
         children: <Widget>[
           Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                _menuButton(
-                  label: 'Go Back',
-                  icon: Icons.reply_rounded,
-                  selected: false,
-                  onTap: () => Navigator.pop(context),
-                ),
-                for (int i = 0; i < _menuItems.length; i++)
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
                   _menuButton(
-                    label: _menuItems[i].label,
-                    icon: _menuItems[i].icon,
-                    selected: i == _selectedIndex,
-                    onTap: () => setState(() => _selectedIndex = i),
+                    label: 'Go Back',
+                    icon: Icons.reply_rounded,
+                    selected: false,
+                    onTap: () => Navigator.pop(context),
                   ),
-              ],
+                  for (int i = 0; i < _menuItems.length; i++)
+                    _menuButton(
+                      label: _menuItems[i].label,
+                      icon: _menuItems[i].icon,
+                      selected: i == _selectedIndex,
+                      onTap: () => setState(() => _selectedIndex = i),
+                    ),
+                ],
+              ),
             ),
           ),
           Container(
@@ -148,9 +150,12 @@ class _MediaScreenState extends State<MediaScreen> {
               children: <Widget>[
                 _pagerButton(Icons.arrow_back, false),
                 SizedBox(width: isTablet ? (isLandscape ? 4.0 : 8.0) : 6.0), // Reduced from 10.0
-                Text(
-                  '1 / 1',
-                  style: TextStyle(fontSize: isTablet ? (isLandscape ? 9.0 : 11.0) : 11.0), // Reduced from 13.0
+                Flexible(
+                  child: Text(
+                    '1 / 1',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: isTablet ? (isLandscape ? 9.0 : 11.0) : 11.0), // Reduced from 13.0
+                  ),
                 ),
                 SizedBox(width: isTablet ? (isLandscape ? 4.0 : 8.0) : 6.0), // Reduced from 10.0
                 _pagerButton(Icons.arrow_forward, true),
@@ -484,15 +489,15 @@ class _MediaScreenState extends State<MediaScreen> {
   Widget _albumTile(String title) {
     final bool isTablet = isTabletLayout(context);
     final bool isLandscape = _isLandscape;
-    final double horizontalPadding = isTablet ? (isLandscape ? 6.0 : 10.0) : 12.0;
-    final double topPadding = isTablet ? (isLandscape ? 4.0 : 8.0) : 10.0;
-    final double bottomPadding = isTablet ? (isLandscape ? 3.0 : 6.0) : 8.0;
-    final double badgePaddingH = isTablet ? (isLandscape ? 6.0 : 10.0) : 12.0;
-    final double badgePaddingV = isTablet ? (isLandscape ? 2.0 : 3.0) : 4.0;
-    final double badgeTextSize = isTablet ? (isLandscape ? 9.0 : 11.0) : 13.0;
-    final double nameTextSize = isTablet ? (isLandscape ? 10.0 : 13.0) : 15.0;
-    final double descTextSize = isTablet ? (isLandscape ? 8.0 : 11.0) : 13.0;
-    final double spacing = isTablet ? (isLandscape ? 2.0 : 3.0) : 4.0;
+    final double horizontalPadding = isTablet ? (isLandscape ? 4.0 : 8.0) : 8.0;
+    final double topPadding = isTablet ? (isLandscape ? 3.0 : 6.0) : 6.0;
+    final double bottomPadding = isTablet ? (isLandscape ? 2.0 : 4.0) : 4.0;
+    final double badgePaddingH = isTablet ? (isLandscape ? 5.0 : 8.0) : 8.0;
+    final double badgePaddingV = isTablet ? (isLandscape ? 1.5 : 2.5) : 2.5;
+    final double badgeTextSize = isTablet ? (isLandscape ? 8.0 : 10.0) : 10.0;
+    final double nameTextSize = isTablet ? (isLandscape ? 9.0 : 11.0) : 12.0;
+    final double descTextSize = isTablet ? (isLandscape ? 7.0 : 9.0) : 10.0;
+    final double spacing = isTablet ? (isLandscape ? 1.5 : 2.5) : 2.5;
     
     return _tileFrame(
       child: Column(
@@ -524,22 +529,29 @@ class _MediaScreenState extends State<MediaScreen> {
                       fontSize: badgeTextSize,
                       color: Colors.black,
                       fontWeight: FontWeight.w600,
+                      height: 1.1,
                     ),
                   ),
                 ),
                 SizedBox(height: spacing),
                 Text(
                   'Album Name',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: nameTextSize,
                     fontWeight: FontWeight.w500,
+                    height: 1.1,
                   ),
                 ),
                 Text(
                   'Write Here',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: descTextSize,
                     color: Colors.black54,
+                    height: 1.1,
                   ),
                 ),
               ],

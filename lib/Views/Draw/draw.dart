@@ -355,72 +355,69 @@ class _DrawScreenState extends State<DrawScreen> {
 
   Widget _actionRow({required bool isLandscape}) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final double screenHeight = MediaQuery.sizeOf(context).height;
+    // Use percentage of screen height with larger range
+    final double actionRowHeight = (screenHeight * 0.17).clamp(100.0, 140.0);
+    
     return Container(
-      height: (isLandscape ? 118 : 94).h,
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
+      height: actionRowHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0), // Reduced vertical padding
       color: isDark ? const Color(0xFF1B1B1B) : const Color(0xFFD3D3D3),
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final bool compact = constraints.maxHeight < 96.h;
-          final double firstRowHeight = compact ? 40.h : (isLandscape ? 54.h : 46.h);
-          final double gap = compact ? 4.h : (isLandscape ? 8.h : 6.h);
-
-          return Column(
-            children: <Widget>[
-              SizedBox(
-                height: firstRowHeight,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: <Widget>[
-                    _actionChip(
-                      icon: Icons.add,
-                      text: 'Add Image',
-                      onTap: _addImage,
-                      isLandscape: isLandscape || compact,
-                    ),
-                    SizedBox(width: 8.w),
-                    _actionChip(
-                      icon: Icons.edit_outlined,
-                      text: 'Edit Image',
-                      onTap: _editImage,
-                      isLandscape: isLandscape || compact,
-                    ),
-                    SizedBox(width: 8.w),
-                    _actionChip(
-                      icon: Icons.delete_outline,
-                      text: 'Remove Image',
-                      onTap: _removeImage,
-                      isLandscape: isLandscape || compact,
-                    ),
-                  ],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          SizedBox(
+            height: actionRowHeight * 0.46, // Reduced from 0.48 to 0.46
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: <Widget>[
+                _actionChip(
+                  icon: Icons.add,
+                  text: 'Add Image',
+                  onTap: _addImage,
+                  isLandscape: isLandscape,
                 ),
-              ),
-              SizedBox(height: gap),
-              Flexible(
-                child: Row(
-                  children: <Widget>[
-                    const Spacer(),
-                    _textAction(
-                      icon: Icons.close,
-                      text: 'Close',
-                      color: const Color(0xFFFF3360),
-                      onTap: _cancelChanges,
-                      isLandscape: isLandscape || compact,
-                    ),
-                    SizedBox(width: 8.w),
-                    _textAction(
-                      icon: Icons.check,
-                      text: 'Save',
-                      color: const Color(0xFF66C8F6),
-                      onTap: _saveChanges,
-                      isLandscape: isLandscape || compact,
-                    ),
-                  ],
+                const SizedBox(width: 8.0),
+                _actionChip(
+                  icon: Icons.edit_outlined,
+                  text: 'Edit Image',
+                  onTap: _editImage,
+                  isLandscape: isLandscape,
                 ),
-              ),
-            ],
-          );
-        },
+                const SizedBox(width: 8.0),
+                _actionChip(
+                  icon: Icons.delete_outline,
+                  text: 'Remove Image',
+                  onTap: _removeImage,
+                  isLandscape: isLandscape,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: actionRowHeight * 0.40, // Reduced from 0.42 to 0.40
+            child: Row(
+              children: <Widget>[
+                const Spacer(),
+                _textAction(
+                  icon: Icons.close,
+                  text: 'Close',
+                  color: const Color(0xFFFF3360),
+                  onTap: _cancelChanges,
+                  isLandscape: isLandscape,
+                ),
+                const SizedBox(width: 8.0),
+                _textAction(
+                  icon: Icons.check,
+                  text: 'Save',
+                  color: const Color(0xFF66C8F6),
+                  onTap: _saveChanges,
+                  isLandscape: isLandscape,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -432,38 +429,52 @@ class _DrawScreenState extends State<DrawScreen> {
     required bool isLandscape,
   }) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    // Responsive sizing based on screen width
+    final double iconSize = (screenWidth * 0.022).clamp(16.0, 22.0);
+    final double textSize = (screenWidth * 0.018).clamp(13.0, 16.0);
+    final double horizontalPadding = (screenWidth * 0.015).clamp(10.0, 14.0);
+    final double verticalPadding = (screenWidth * 0.014).clamp(10.0, 14.0); // Increased padding
+    
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8.r),
+      borderRadius: BorderRadius.circular(8.0),
       child: Container(
         constraints: BoxConstraints(
-          minWidth: (isLandscape ? 108 : 120).w,
+          minWidth: (screenWidth * 0.15).clamp(100.0, 130.0),
+          minHeight: (screenWidth * 0.10).clamp(40.0, 50.0), // Added minimum height
         ),
         padding: EdgeInsets.symmetric(
-          horizontal: (isLandscape ? 12 : 12).w,
-          vertical: (isLandscape ? 9 : 8).h,
+          horizontal: horizontalPadding,
+          vertical: verticalPadding,
         ),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFEDEDED),
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(8.0),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Icon(
               icon,
-              size: (isLandscape ? 18 : 18).w,
+              size: iconSize,
               color: isDark ? Colors.white : Colors.black54,
             ),
-            SizedBox(width: (isLandscape ? 6 : 6).w),
-            Text(
-              text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: (isLandscape ? 13 : 15).sp,
-                color: isDark ? Colors.white : Colors.black,
+            const SizedBox(width: 6.0),
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: textSize,
+                  color: isDark ? Colors.white : Colors.black,
+                  height: 1.3, // Added proper line height
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              softWrap: false,
             ),
           ],
         ),
@@ -479,31 +490,48 @@ class _DrawScreenState extends State<DrawScreen> {
     required bool isLandscape,
   }) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    // Responsive sizing based on screen width
+    final double iconSize = (screenWidth * 0.024).clamp(18.0, 24.0);
+    final double textSize = (screenWidth * 0.020).clamp(14.0, 18.0);
+    final double horizontalPadding = (screenWidth * 0.015).clamp(10.0, 14.0);
+    final double verticalPadding = (screenWidth * 0.014).clamp(10.0, 14.0); // Increased padding
+    
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8.r),
+      borderRadius: BorderRadius.circular(8.0),
       child: Container(
         constraints: BoxConstraints(
-          minWidth: (isLandscape ? 92 : 100).w,
+          minWidth: (screenWidth * 0.13).clamp(90.0, 110.0),
+          minHeight: (screenWidth * 0.10).clamp(40.0, 50.0), // Added minimum height
         ),
         padding: EdgeInsets.symmetric(
-          horizontal: (isLandscape ? 12 : 12).w,
-          vertical: (isLandscape ? 9 : 8).h,
+          horizontal: horizontalPadding,
+          vertical: verticalPadding,
         ),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(8.0),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(icon, color: color, size: (isLandscape ? 18 : 20).w),
-            SizedBox(width: (isLandscape ? 6 : 4).w),
-            Text(
-              text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: (isLandscape ? 13 : 16).sp, color: color),
-              softWrap: false,
+            Icon(icon, color: color, size: iconSize),
+            const SizedBox(width: 6.0),
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: textSize,
+                  color: color,
+                  height: 1.3, // Added proper line height
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ResponsiveFrame extends StatelessWidget {
   const ResponsiveFrame({
@@ -40,32 +39,31 @@ int responsiveCrossAxisCount(BuildContext context, {double? width}) {
 }
 
 double responsiveTileSpacing(BuildContext context) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  if (isTablet && isLandscape) return 12.0;
-  if (isTablet) return 14.0;
-  if (isLandscape) return 10.0;
-  return 12.0;
+  final double screenWidth = MediaQuery.sizeOf(context).width;
+  // 1.5% of screen width, clamped between 10-16px
+  return (screenWidth * 0.015).clamp(10.0, 16.0);
 }
 
-/// Safe padding for screens with notches or system UI
+/// Get responsive size based on screen width percentage
+double responsiveSize(BuildContext context, double percentage) {
+  final double screenWidth = MediaQuery.sizeOf(context).width;
+  return screenWidth * (percentage / 100);
+}
+
+/// Get responsive height based on screen height percentage
+double responsiveHeight(BuildContext context, double percentage) {
+  final double screenHeight = MediaQuery.sizeOf(context).height;
+  return screenHeight * (percentage / 100);
+}
+
+/// Safe padding for screens - scales with screen size
 EdgeInsets responsivePadding(BuildContext context) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  
-  if (isTablet && isLandscape) {
-    return const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0);
-  } else if (isTablet) {
-    return const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0);
-  } else if (isLandscape) {
-    return const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0);
-  }
-  // Mobile gets larger padding
-  return const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0);
+  final double width = MediaQuery.sizeOf(context).width;
+  final double padding = width * 0.025; // 2.5% of screen width
+  return EdgeInsets.all(padding.clamp(10.0, 16.0));
 }
 
-/// Aspect ratio so [itemCount] tiles fill the grid area without scrolling.
-/// Enhanced to prevent overflow on tablet rotation.
+/// Aspect ratio calculation for grid tiles
 double gridChildAspectRatioForFit({
   required double maxWidth,
   required double maxHeight,
@@ -85,156 +83,137 @@ double gridChildAspectRatioForFit({
   if (cellHeight <= 0) return 1.0;
   
   final double ratio = cellWidth / cellHeight;
-  // Clamp ratio to reasonable bounds to prevent extreme layouts
   return ratio.clamp(0.7, 1.4);
 }
 
 // ─────────────────────────────────────────────
-//  Tablet-aware size helpers (Enhanced for rotation)
+//  LEFT RAIL HELPERS - Scale with screen size
 // ─────────────────────────────────────────────
 
-/// Returns a scaled font size appropriate for the current device / orientation.
-/// [phone] base in sp, [tabletPortrait] for tablet portrait, [tabletLandscape]
-/// for tablet landscape. Falls back to [phone] when values are omitted.
-double tabletSp(
-  BuildContext context,
-  double phone, {
-  double? tabletPortrait,
-  double? tabletLandscape,
-}) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  if (isTablet && isLandscape && tabletLandscape != null) return tabletLandscape.sp;
-  if (isTablet && tabletPortrait != null) return tabletPortrait.sp;
-  return phone.sp;
-}
-
-/// Returns a pixel size (width/height) appropriate for the current device.
-double tabletW(
-  BuildContext context,
-  double phone, {
-  double? tabletPortrait,
-  double? tabletLandscape,
-}) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  if (isTablet && isLandscape && tabletLandscape != null) return tabletLandscape.w;
-  if (isTablet && tabletPortrait != null) return tabletPortrait.w;
-  return phone.w;
-}
-
-/// Same as [tabletW] but for heights.
-double tabletH(
-  BuildContext context,
-  double phone, {
-  double? tabletPortrait,
-  double? tabletLandscape,
-}) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  if (isTablet && isLandscape && tabletLandscape != null) return tabletLandscape.h;
-  if (isTablet && tabletPortrait != null) return tabletPortrait.h;
-  return phone.h;
-}
-
-/// Left-rail width for screens that have an action rail sidebar.
-/// Enhanced for tablet rotation to prevent layout overflow.
+/// Left-rail width - responsive based on device and orientation
 double railWidth(BuildContext context) {
+  final double screenWidth = MediaQuery.sizeOf(context).width;
   final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  if (isTablet && isLandscape) return 80.0;
-  if (isTablet) return 90.0;
-  // Mobile gets moderate sizes - not too big
-  if (isLandscape) return 75.0;
-  return 80.0;
+  final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+  
+  if (isTablet) {
+    // Tablets: smaller in landscape, normal in portrait
+    if (isLandscape) {
+      return (screenWidth * 0.045).clamp(55.0, 70.0); // Small when rotated
+    } else {
+      return (screenWidth * 0.065).clamp(75.0, 90.0); // Normal size
+    }
+  } else {
+    // Phones: slightly smaller in landscape
+    if (isLandscape) {
+      return (screenWidth * 0.08).clamp(65.0, 80.0); // Small when rotated
+    } else {
+      return (screenWidth * 0.10).clamp(80.0, 95.0); // Normal size
+    }
+  }
 }
 
-/// Icon button size inside the left rail.
+/// Icon button container - 70% of rail width
 double railIconContainerW(BuildContext context) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  if (isTablet && isLandscape) return 56.0;
-  if (isTablet) return 64.0;
-  // Mobile gets moderate sizes - not too big
-  if (isLandscape) return 54.0;
-  return 66.0;
+  final double railW = railWidth(context);
+  return railW * 0.70;
 }
 
+/// Icon size - 35% of container width
 double railIconSize(BuildContext context) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  if (isTablet && isLandscape) return 22.0;
-  if (isTablet) return 24.0;
-  // Mobile gets moderate sizes - not too big
-  if (isLandscape) return 22.0;
-  return 26.0;
+  final double containerW = railIconContainerW(context);
+  return containerW * 0.35;
 }
 
+/// Label font size - 1.5% of screen width
 double railLabelSp(BuildContext context) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  if (isTablet && isLandscape) return 11.0;
-  if (isTablet) return 12.0;
-  // Mobile gets moderate sizes - not too big
-  if (isLandscape) return 10.0;
-  return 12.0;
+  final double screenWidth = MediaQuery.sizeOf(context).width;
+  return (screenWidth * 0.015).clamp(10.0, 13.0);
 }
 
+/// Vertical padding - 1% of screen height
 double railVerticalPadding(BuildContext context) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  if (isTablet && isLandscape) return 8.0;
-  if (isTablet) return 10.0;
-  // Mobile gets moderate sizes - not too big
-  if (isLandscape) return 7.0;
-  return 9.0;
+  final double screenHeight = MediaQuery.sizeOf(context).height;
+  return (screenHeight * 0.01).clamp(7.0, 10.0);
 }
 
 // ─────────────────────────────────────────────
-//  Additional rotation-safe helpers
+//  TEXT SIZE HELPERS - Scale with screen size
 // ─────────────────────────────────────────────
 
-/// Get safe button size that works in all orientations
+/// Responsive text size based on screen width percentage
+double responsiveTextSize(BuildContext context, double basePercentage) {
+  final double screenWidth = MediaQuery.sizeOf(context).width;
+  return (screenWidth * (basePercentage / 100)).clamp(10.0, 50.0);
+}
+
+/// Header text (2.5% of width)
+double headerTextSize(BuildContext context) {
+  return responsiveTextSize(context, 2.5);
+}
+
+/// Body text (2% of width)
+double bodyTextSize(BuildContext context) {
+  return responsiveTextSize(context, 2.0);
+}
+
+/// Small text (1.5% of width)
+double smallTextSize(BuildContext context) {
+  return responsiveTextSize(context, 1.5);
+}
+
+// ─────────────────────────────────────────────
+//  ICON SIZE HELPERS - Scale with screen size
+// ─────────────────────────────────────────────
+
+/// Responsive icon size based on screen width percentage
+double responsiveIconSize(BuildContext context, double basePercentage) {
+  final double screenWidth = MediaQuery.sizeOf(context).width;
+  return (screenWidth * (basePercentage / 100)).clamp(16.0, 40.0);
+}
+
+/// Standard icon (3% of width)
+double standardIconSize(BuildContext context) {
+  return responsiveIconSize(context, 3.0);
+}
+
+/// Large icon (4% of width)
+double largeIconSize(BuildContext context) {
+  return responsiveIconSize(context, 4.0);
+}
+
+/// Small icon (2.5% of width)
+double smallIconSize(BuildContext context) {
+  return responsiveIconSize(context, 2.5);
+}
+
+// ─────────────────────────────────────────────
+//  IMAGE SIZE HELPERS
+// ─────────────────────────────────────────────
+
+/// Responsive image size for tiles (65% of available width)
+double responsiveTileImageSize(BuildContext context, double availableWidth) {
+  return (availableWidth * 0.65).clamp(50.0, 100.0);
+}
+
+// ─────────────────────────────────────────────
+//  SAFE SIZING HELPERS
+// ─────────────────────────────────────────────
+
+/// Safe button size (5% of width)
 double safeButtonSize(BuildContext context, double baseSize) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  
-  if (isTablet && isLandscape) {
-    return baseSize * 1.0;
-  } else if (isTablet) {
-    return baseSize * 1.1;
-  } else if (isLandscape) {
-    return baseSize * 0.9;
-  }
-  return baseSize;
+  final double screenWidth = MediaQuery.sizeOf(context).width;
+  return (screenWidth * 0.05).clamp(baseSize * 0.8, baseSize * 1.2);
 }
 
-/// Get safe icon size that works in all orientations
+/// Safe icon size (4% of width)
 double safeIconSize(BuildContext context, double baseSize) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  
-  if (isTablet && isLandscape) {
-    return baseSize * 1.05;
-  } else if (isTablet) {
-    return baseSize * 1.1;
-  } else if (isLandscape) {
-    return baseSize * 0.95;
-  }
-  return baseSize;
+  final double screenWidth = MediaQuery.sizeOf(context).width;
+  return (screenWidth * 0.04).clamp(baseSize * 0.9, baseSize * 1.1);
 }
 
-/// Get safe text size that prevents overflow
+/// Safe text size (2.5% of width)
 double safeTextSize(BuildContext context, double baseSize) {
-  final bool isTablet = isTabletLayout(context);
-  final bool isLandscape = isLandscapeLayout(context);
-  
-  if (isTablet && isLandscape) {
-    return baseSize * 1.0;
-  } else if (isTablet) {
-    return baseSize * 1.05;
-  } else if (isLandscape) {
-    return baseSize * 0.9;
-  }
-  return baseSize;
+  final double screenWidth = MediaQuery.sizeOf(context).width;
+  return (screenWidth * 0.025).clamp(baseSize * 0.85, baseSize * 1.15);
 }
