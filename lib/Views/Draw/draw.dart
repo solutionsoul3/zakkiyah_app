@@ -491,11 +491,13 @@ class _DrawScreenState extends State<DrawScreen> {
   }) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final double screenWidth = MediaQuery.sizeOf(context).width;
-    // Responsive sizing based on screen width
+    final double screenHeight = MediaQuery.sizeOf(context).height;
+    // Responsive sizing based on screen dimensions
     final double iconSize = (screenWidth * 0.024).clamp(18.0, 24.0);
     final double textSize = (screenWidth * 0.020).clamp(14.0, 18.0);
-    final double horizontalPadding = (screenWidth * 0.015).clamp(10.0, 14.0);
-    final double verticalPadding = (screenWidth * 0.014).clamp(10.0, 14.0); // Increased padding
+    final double horizontalPadding = (screenWidth * 0.016).clamp(12.0, 16.0);
+    final double verticalPadding = (screenHeight * 0.016).clamp(12.0, 16.0); // Based on height
+    final double minHeight = (screenHeight * 0.12).clamp(45.0, 55.0); // Based on height
     
     return InkWell(
       onTap: onTap,
@@ -503,7 +505,7 @@ class _DrawScreenState extends State<DrawScreen> {
       child: Container(
         constraints: BoxConstraints(
           minWidth: (screenWidth * 0.13).clamp(90.0, 110.0),
-          minHeight: (screenWidth * 0.10).clamp(40.0, 50.0), // Added minimum height
+          minHeight: minHeight, // Enough height for text
         ),
         padding: EdgeInsets.symmetric(
           horizontal: horizontalPadding,
@@ -522,13 +524,13 @@ class _DrawScreenState extends State<DrawScreen> {
             Flexible(
               child: Text(
                 text,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                maxLines: 2, // Allow 2 lines if needed
+                overflow: TextOverflow.visible, // Show all text
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: textSize,
                   color: color,
-                  height: 1.3, // Added proper line height
+                  height: 1.2, // Tighter line height
                   fontWeight: FontWeight.w500,
                 ),
               ),

@@ -263,105 +263,113 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             borderRadius: BorderRadius.circular(16.r),
             border: Border.all(color: borderColor),
           ),
-          child: Column(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                    onPressed: () => _changeMonth(-1),
-                    icon: const Icon(Icons.chevron_left),
-                  ),
-                  Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        monthLabel,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: compact ? 15.sp : 18.sp,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
+          child: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      onPressed: () => _changeMonth(-1),
+                      icon: const Icon(Icons.chevron_left),
                     ),
-                  ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                    onPressed: () => _changeMonth(1),
-                    icon: const Icon(Icons.chevron_right),
-                  ),
-                ],
-              ),
-              SizedBox(height: 6.h),
-              Row(
-                children: <Widget>[
-                  for (final String day in weekdayLabels)
                     Expanded(
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            day,
-                            style: TextStyle(
-                              fontSize: compact ? 10.sp : 12.sp,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white54 : Colors.black54,
-                            ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          monthLabel,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: compact ? 15.sp : 18.sp,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
                       ),
                     ),
-                ],
-              ),
-              SizedBox(height: 6.h),
-              Expanded(
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: days.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    mainAxisSpacing: 4,
-                    crossAxisSpacing: 4,
-                    childAspectRatio: aspectRatio.clamp(0.6, 1.6),
-                  ),
-                  itemBuilder: (_, int index) {
-                    final DateTime? day = days[index];
-                    if (day == null) return const SizedBox.shrink();
-
-                    final bool isToday = _isSameDay(day, _now);
-
-                    return VoiceTap(
-                      announceText: DateFormat('MMMM d').format(day),
-                      onTap: () async => _openGoogleCalendar(date: day),
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isToday ? const Color(0xFF1A73E8) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        alignment: Alignment.center,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            '${day.day}',
-                            style: TextStyle(
-                              fontSize: compact ? 12.sp : 14.sp,
-                              fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                              color: isToday
-                                  ? Colors.white
-                                  : (isDark ? Colors.white : Colors.black87),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      onPressed: () => _changeMonth(1),
+                      icon: const Icon(Icons.chevron_right),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 6.h),
+                Row(
+                  children: <Widget>[
+                    for (final String day in weekdayLabels)
+                      Expanded(
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              day,
+                              style: TextStyle(
+                                fontSize: compact ? 10.sp : 12.sp,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white54 : Colors.black54,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    );
-                  },
+                  ],
                 ),
-              ),
-            ],
+                SizedBox(height: 6.h),
+                // Fixed height for calendar grid - enough for all dates even in long months
+                SizedBox(
+                  height: (rowCount * 70.0) + ((rowCount - 1) * 4) + 40, // Even more height
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: days.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7,
+                      mainAxisSpacing: 4,
+                      crossAxisSpacing: 4,
+                      childAspectRatio: 1.0, // Square cells
+                    ),
+                    itemBuilder: (_, int index) {
+                      final DateTime? day = days[index];
+                      if (day == null) return const SizedBox.shrink();
+
+                      final bool isToday = _isSameDay(day, _now);
+
+                      return VoiceTap(
+                        announceText: DateFormat('MMMM d').format(day),
+                        onTap: () async => _openGoogleCalendar(date: day),
+                        borderRadius: BorderRadius.circular(8.r),
+                        child: Container(
+                          padding: const EdgeInsets.all(4.0), // Add padding inside cell
+                          decoration: BoxDecoration(
+                            color: isToday ? const Color(0xFF1A73E8) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          alignment: Alignment.center,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${day.day}',
+                              style: TextStyle(
+                                fontSize: compact ? 13.sp : 15.sp,
+                                fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                                color: isToday
+                                    ? Colors.white
+                                    : (isDark ? Colors.white : Colors.black87),
+                                height: 1.4, // Add line height for proper spacing
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 16.h), // More bottom padding for scroll
+              ],
+            ),
           ),
         );
       },

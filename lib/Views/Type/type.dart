@@ -150,11 +150,12 @@ class _TypeScreenState extends State<TypeScreen> {
                 ),
               ),
               Expanded(
-                child: SingleChildScrollView(
+                child: Padding(
                   padding: EdgeInsets.all((isLandscape ? 8 : 12).w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      // FIXED: Title - doesn't scroll
                       Text(
                         'Type Your Message',
                         style: TextStyle(
@@ -164,6 +165,7 @@ class _TypeScreenState extends State<TypeScreen> {
                         ),
                       ),
                       SizedBox(height: (isLandscape ? 6 : 8).h),
+                      // FIXED: Input boxes - don't scroll
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -175,9 +177,8 @@ class _TypeScreenState extends State<TypeScreen> {
                         ],
                       ),
                       SizedBox(height: (isLandscape ? 6 : 10).h),
-                      // Larger keyboard container to prevent overflow - extra padding added
-                      SizedBox(
-                        height: (screenHeight * 0.56).clamp(360.0, 560.0),
+                      // SCROLLABLE: Only keyboard section scrolls
+                      Expanded(
                         child: Container(
                           width: double.infinity,
                           padding: EdgeInsets.all(10.w),
@@ -185,10 +186,14 @@ class _TypeScreenState extends State<TypeScreen> {
                             color: const Color(0xFFE5E5E5),
                             borderRadius: BorderRadius.circular(18.r),
                           ),
-                          child: _keyboardPreview(),
+                          child: SingleChildScrollView(
+                            child: SizedBox(
+                              height: (screenHeight * 0.58).clamp(380.0, 600.0),
+                              child: _keyboardPreview(),
+                            ),
+                          ),
                         ),
                       ),
-                      SizedBox(height: 16.h), // Bottom padding for scrolling
                     ],
                   ),
                 ),
